@@ -87,24 +87,19 @@ const WhatIDo = () => {
             <div className="what-corner"></div>
 
             <div className="what-content-in">
-              <h3>DEVELOP</h3>
+              <h3>MOTION GRAPHICS</h3>
               <h4>Description</h4>
               <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas
-                quia aliquid laboriosam ducimus sit molestiae.
+                I specialize in SaaS motion design, advanced motion graphics, and UI animations that bring digital products to life.
               </p>
               <h5>Skillset & tools</h5>
               <div className="what-content-flex">
-                <div className="what-tags">JavaScript</div>
-                <div className="what-tags">TypeScript</div>
-                <div className="what-tags">Three.js</div>
-                <div className="what-tags">React</div>
-                <div className="what-tags">Css</div>
-                <div className="what-tags">Node.js</div>
-                <div className="what-tags">Next.js</div>
-                <div className="what-tags">Express.js</div>
-                <div className="what-tags">PHP</div>
-                <div className="what-tags">MySql</div>
+                <div className="what-tags">After Effects</div>
+                <div className="what-tags">SaaS Motion</div>
+                <div className="what-tags">UI Animation</div>
+                <div className="what-tags">Kinetic Typography</div>
+                <div className="what-tags">Lottie</div>
+                <div className="what-tags">Framer Motion</div>
               </div>
               <div className="what-arrow"></div>
             </div>
@@ -128,22 +123,20 @@ const WhatIDo = () => {
             </div>
             <div className="what-corner"></div>
             <div className="what-content-in">
-              <h3>DESIGN</h3>
+              <h3>VIDEO EDITING</h3>
               <h4>Description</h4>
               <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas
-                quia aliquid laboriosam ducimus sit molestiae
+                Expertise in cinematic video editing, color grading (S-Log), and AI-powered video generation for high-impact visual storytelling.
               </p>
               <h5>Skillset & tools</h5>
               <div className="what-content-flex">
-                <div className="what-tags">Blender</div>
-                <div className="what-tags">Zbrush</div>
-                <div className="what-tags">UI Design</div>
-                <div className="what-tags">Motion</div>
-                <div className="what-tags">Rigging</div>
-                <div className="what-tags">3D Animation</div>
-                <div className="what-tags">Character Design</div>
-                <div className="what-tags">Modelling</div>
+                <div className="what-tags">Premiere Pro</div>
+                <div className="what-tags">DaVinci Resolve</div>
+                <div className="what-tags">Color Grading</div>
+                <div className="what-tags">S-Log Editing</div>
+                <div className="what-tags">Speed Remapping</div>
+                <div className="what-tags">Sound Design</div>
+                <div className="what-tags">AI Video Tools</div>
               </div>
               <div className="what-arrow"></div>
             </div>
