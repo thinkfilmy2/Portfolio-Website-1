@@ -1,4 +1,4 @@
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, Variants } from 'framer-motion';
 import { useRef } from 'react';
 
 const footerLinks = {
@@ -25,7 +25,7 @@ const containerVariants = {
   visible: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
 };
 
-const columnVariants = {
+const columnVariants: Variants = {
   hidden: { opacity: 0, y: 30, filter: 'blur(4px)' },
   visible: {
     opacity: 1, y: 0, filter: 'blur(0px)',
@@ -33,7 +33,7 @@ const columnVariants = {
   },
 };
 
-const linkVariants = {
+const linkVariants: Variants = {
   hidden: { opacity: 0, x: -10 },
   visible: (i: number) => ({
     opacity: 1, x: 0,

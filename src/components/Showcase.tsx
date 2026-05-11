@@ -4,7 +4,7 @@ import {
   useTransform,
   useSpring,
   useMotionValue,
-  AnimatePresence,
+
 } from 'framer-motion';
 import { useState, useRef, useCallback, useEffect, MouseEvent } from 'react';
 import VideoPlayerModal from './VideoPlayerModal';

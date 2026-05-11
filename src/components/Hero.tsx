@@ -1,9 +1,9 @@
 import { useRef, useState, useCallback } from 'react';
-import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useScroll, useTransform, Variants } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import PricingModal from './PricingModal';
 
-const wordAnimation = {
+const wordAnimation: Variants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(8px)', scale: 0.96 },
   visible: (i: number) => ({
     opacity: 1,
@@ -21,7 +21,7 @@ const wordAnimation = {
 export default function Hero() {
   const [showPricing, setShowPricing] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true });
+
 
   /* Parallax for badge & subtext */
   const { scrollYProgress } = useScroll({

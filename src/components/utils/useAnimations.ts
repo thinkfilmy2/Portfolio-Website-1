@@ -1,10 +1,10 @@
-import { useRef, useEffect, useState, useCallback, RefObject } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import {
   useMotionValue,
   useSpring,
   useTransform,
   useScroll,
-  useInView,
+
   MotionValue,
 } from 'framer-motion';
 

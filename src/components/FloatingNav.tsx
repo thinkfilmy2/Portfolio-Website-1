@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 const navItems = [
   { label: 'Home', href: '#' },
@@ -94,7 +94,7 @@ export default function FloatingNav() {
     open: { transition: { delayChildren: 0.2, staggerChildren: 0.08 } },
   };
 
-  const linkVariants = {
+  const linkVariants: Variants = {
     closed: { opacity: 0, x: 40, filter: 'blur(8px)' },
     open: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
   };

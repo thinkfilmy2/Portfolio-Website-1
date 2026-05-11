@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { motion, useSpring, useMotionValue } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, useSpring } from 'framer-motion';
 
 export default function CustomCursor() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });

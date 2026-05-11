@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { X } from 'lucide-react';
 
 interface PricingModalProps {
@@ -45,7 +45,7 @@ const backdropVariants = {
   exit: { opacity: 0 },
 };
 
-const modalVariants = {
+const modalVariants: Variants = {
   hidden: { opacity: 0, scale: 0.92, y: 40 },
   visible: {
     opacity: 1,
@@ -67,7 +67,7 @@ const modalVariants = {
   },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
@@ -76,7 +76,7 @@ const cardVariants = {
   },
 };
 
-const tierVariants = {
+const tierVariants: Variants = {
   hidden: { opacity: 0, x: -12 },
   visible: (i: number) => ({
     opacity: 1,
