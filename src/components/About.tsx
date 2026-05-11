@@ -99,7 +99,7 @@ function SvgPathAnimation() {
 
 export default function About() {
   return (
-    <section className="py-32 px-6 overflow-hidden" id="about">
+    <section className="relative py-32 px-6 overflow-hidden" id="about">
       <div className="container mx-auto max-w-5xl">
         
         {/* Main About Me Glass Card */}
