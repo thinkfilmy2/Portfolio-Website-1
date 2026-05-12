@@ -1,7 +1,6 @@
-import { useRef, useState, useCallback } from 'react';
-import { motion, useMotionValue, useSpring, useScroll, useTransform, Variants } from 'framer-motion';
-import { ArrowRight, ChevronDown } from 'lucide-react';
-import PricingModal from './PricingModal';
+import { useRef } from 'react';
+import { motion, useScroll, useTransform, Variants } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 
 const wordAnimation: Variants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(8px)', scale: 0.96 },
@@ -19,7 +18,6 @@ const wordAnimation: Variants = {
 };
 
 export default function Hero() {
-  const [showPricing, setShowPricing] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
 
@@ -32,25 +30,6 @@ export default function Hero() {
   const subtextY = useTransform(scrollYProgress, [0, 1], [0, -30]);
   const headlineY = useTransform(scrollYProgress, [0, 1], [0, -45]);
   const scrollOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-
-  /* Magnetic hover for CTA button */
-  const ctaX = useMotionValue(0);
-  const ctaY = useMotionValue(0);
-  const ctaSpringX = useSpring(ctaX, { stiffness: 150, damping: 15 });
-  const ctaSpringY = useSpring(ctaY, { stiffness: 150, damping: 15 });
-
-  const handleCtaMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      ctaX.set((e.clientX - rect.left - rect.width / 2) * 0.3);
-      ctaY.set((e.clientY - rect.top - rect.height / 2) * 0.3);
-    },
-    [ctaX, ctaY]
-  );
-  const handleCtaMouseLeave = useCallback(() => {
-    ctaX.set(0);
-    ctaY.set(0);
-  }, [ctaX, ctaY]);
 
   const headlineWords = 'I craft compelling motion stories for modern brands'.split(' ');
 
@@ -121,56 +100,8 @@ export default function Hero() {
             motion design, advanced motion graphics, and AI-powered video editing &amp; generation.
           </motion.p>
 
-          {/* CTA — Magnetic glass pill button with glow ring */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.3 }}
-          >
-            <motion.button
-              onClick={() => setShowPricing(true)}
-              onMouseMove={handleCtaMouseMove}
-              onMouseLeave={handleCtaMouseLeave}
-              whileHover={{
-                scale: 1.05,
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderColor: 'rgba(139,92,246,0.3)',
-                boxShadow: '0 0 30px rgba(139,92,246,0.15), 0 0 60px rgba(139,92,246,0.05)',
-              }}
-              whileTap={{ scale: 0.96 }}
-              className="group flex items-center gap-2.5 px-8 py-4 rounded-full font-medium text-base cursor-pointer glow-ring relative overflow-hidden"
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: '#f5f5f7',
-                backdropFilter: 'blur(20px)',
-                transition: 'box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease',
-                x: ctaSpringX,
-                y: ctaSpringY,
-              }}
-            >
-              {/* Shimmer sweep on hover */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear', repeatDelay: 4 }}
-              />
-              <span className="relative z-10">Get a Quote</span>
-              <motion.span
-                className="inline-block relative z-10"
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <ArrowRight className="w-4 h-4" style={{ opacity: 0.7 }} />
-              </motion.span>
-            </motion.button>
-          </motion.div>
         </div>
       </div>
-
-      {/* Pricing Modal */}
-      <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
 
       {/* Scroll indicator with breathing glow */}
       <motion.div

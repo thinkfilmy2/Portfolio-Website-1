@@ -12,7 +12,7 @@ export default function CTA() {
   const btnSpringY = useSpring(btnY, { stiffness: 150, damping: 15 });
 
   const handleBtnMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       btnX.set((e.clientX - rect.left - rect.width / 2) * 0.3);
       btnY.set((e.clientY - rect.top - rect.height / 2) * 0.3);
@@ -84,8 +84,10 @@ export default function CTA() {
           className="flex flex-col sm:flex-row items-center justify-center gap-6"
         >
           {/* Magnetic glass CTA button with glow ring */}
-          <motion.button
-            onClick={() => document.getElementById('project-brief')?.scrollIntoView({ behavior: 'smooth' })}
+          <motion.a
+            href="https://wa.me/919100266022"
+            target="_blank"
+            rel="noopener noreferrer"
             onMouseMove={handleBtnMouseMove}
             onMouseLeave={handleBtnMouseLeave}
             whileHover={{
@@ -126,7 +128,7 @@ export default function CTA() {
               transition={{ duration: 0.4 }}
             />
 
-            <span className="relative z-10">Start Project</span>
+            <span className="relative z-10">Create With Me</span>
             <motion.span
               className="relative z-10 inline-block"
               animate={{ x: [0, 4, 0] }}
@@ -134,7 +136,7 @@ export default function CTA() {
             >
               <ArrowRight className="w-5 h-5" style={{ opacity: 0.7 }} />
             </motion.span>
-          </motion.button>
+          </motion.a>
 
           {/* Email with animated underline */}
           <motion.a

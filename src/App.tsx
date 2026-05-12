@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
-import CustomCursor from './components/CustomCursor';
 import LoadingScreen from './components/LoadingScreen';
 import Hero from './components/Hero';
 import Showcase from './components/Showcase';
@@ -9,7 +8,6 @@ import About from './components/About';
 import Process from './components/Process';
 import Testimonials from './components/Testimonials';
 import CTA from './components/CTA';
-import ProjectBriefForm from './components/ProjectBriefForm';
 import Footer from './components/Footer';
 import FloatingNav from './components/FloatingNav';
 
@@ -331,8 +329,6 @@ function App() {
 
   return (
     <>
-      <CustomCursor />
-      
       <AnimatePresence mode="wait">
         {isLoading && <LoadingScreen key="loading" onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
@@ -365,7 +361,6 @@ function App() {
             <Process />
             <Testimonials />
             <CTA />
-            <ProjectBriefForm />
             <Footer />
           </motion.main>
         </>
