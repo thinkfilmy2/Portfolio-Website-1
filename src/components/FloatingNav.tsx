@@ -103,7 +103,7 @@ export default function FloatingNav() {
     <>
       {/* ── Fixed Menu Button (Top Right) ── */}
       <motion.button
-        className="fixed top-24 right-6 z-[100] w-11 h-11 rounded-full flex flex-col items-center justify-center gap-[4px] cursor-pointer"
+        className="fixed top-16 md:top-24 right-4 md:right-6 z-[100] w-10 h-10 md:w-11 md:h-11 rounded-full flex flex-col items-center justify-center gap-[4px] cursor-pointer"
         style={{
           background: isOpen ? 'transparent' : 'rgba(20,20,25,0.6)',
           backdropFilter: isOpen ? 'none' : 'blur(20px) saturate(180%)',

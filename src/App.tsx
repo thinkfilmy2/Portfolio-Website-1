@@ -77,7 +77,7 @@ function AuroraMesh() {
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       {/* ── Cursor-following spotlight — moves directly with mouse ── */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full hidden md:block"
         style={{
           width: '800px',
           height: '800px',
@@ -90,10 +90,8 @@ function AuroraMesh() {
 
       {/* Purple orb — top left, slow trail */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full w-[400px] h-[400px] md:w-[700px] md:h-[700px] lg:w-[900px] lg:h-[900px]"
         style={{
-          width: '900px',
-          height: '900px',
           background: 'radial-gradient(circle, rgba(139,92,246,0.28) 0%, rgba(139,92,246,0.10) 35%, transparent 70%)',
           filter: 'blur(70px)',
           top: '-5%',
@@ -105,10 +103,8 @@ function AuroraMesh() {
       />
       {/* Blue orb — top right, medium trail */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full w-[350px] h-[350px] md:w-[600px] md:h-[600px] lg:w-[800px] lg:h-[800px]"
         style={{
-          width: '800px',
-          height: '800px',
           background: 'radial-gradient(circle, rgba(41,151,255,0.24) 0%, rgba(41,151,255,0.08) 35%, transparent 70%)',
           filter: 'blur(80px)',
           top: '10%',
@@ -120,10 +116,8 @@ function AuroraMesh() {
       />
       {/* Pink orb — center, fast trail */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full w-[300px] h-[300px] md:w-[500px] md:h-[500px] lg:w-[700px] lg:h-[700px]"
         style={{
-          width: '700px',
-          height: '700px',
           background: 'radial-gradient(circle, rgba(236,72,153,0.16) 0%, rgba(236,72,153,0.05) 35%, transparent 70%)',
           filter: 'blur(100px)',
           top: '40%',
@@ -135,10 +129,8 @@ function AuroraMesh() {
       />
       {/* Cyan orb — bottom right, medium trail */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full w-[250px] h-[250px] md:w-[450px] md:h-[450px] lg:w-[600px] lg:h-[600px]"
         style={{
-          width: '600px',
-          height: '600px',
           background: 'radial-gradient(circle, rgba(34,211,238,0.14) 0%, rgba(34,211,238,0.04) 35%, transparent 70%)',
           filter: 'blur(90px)',
           bottom: '5%',
@@ -150,10 +142,8 @@ function AuroraMesh() {
       />
       {/* Deep purple — bottom left, slowest trail */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full w-[400px] h-[400px] md:w-[700px] md:h-[700px] lg:w-[1000px] lg:h-[1000px]"
         style={{
-          width: '1000px',
-          height: '1000px',
           background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.04) 35%, transparent 70%)',
           filter: 'blur(120px)',
           bottom: '-10%',
@@ -226,7 +216,7 @@ function ScrollAwareNav() {
 
   return (
     <motion.nav
-      className="fixed top-0 left-0 w-full z-50 px-6 py-5"
+      className="fixed top-0 left-0 w-full z-50 px-4 py-3 md:px-6 md:py-5"
       style={{
         backgroundColor: useTransform(navOpacity, v => `rgba(0, 0, 0, ${v * 0.72})`),
         backdropFilter: useTransform(navOpacity, v => `blur(${v * 40}px) saturate(${100 + v * 80}%)`),
@@ -239,7 +229,7 @@ function ScrollAwareNav() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 2.8 }}
-          className="font-semibold text-lg tracking-tight cursor-default"
+          className="font-semibold text-sm md:text-lg tracking-tight cursor-default"
           style={{ color: '#f5f5f7', x: logoSpringX, y: logoSpringY }}
           onMouseMove={handleLogoMouseMove}
           onMouseLeave={handleLogoMouseLeave}
@@ -253,7 +243,7 @@ function ScrollAwareNav() {
           {/* Email with animated underline */}
           <motion.a
             href="mailto:upananadadebnath@gmail.com?subject=Project%20Inquiry"
-            className="text-xs font-medium uppercase tracking-widest hidden lg:block hover-underline"
+            className="text-xs font-medium tracking-widest hidden lg:block hover-underline"
             style={{ color: '#86868b' }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -273,7 +263,7 @@ function ScrollAwareNav() {
           />
 
           {/* Social Icons with glow hover */}
-          <div className="flex items-center gap-0.5">
+          <div className="hidden sm:flex items-center gap-0.5">
             {socials.map((social, i) => (
               <motion.a
                 key={social.label}

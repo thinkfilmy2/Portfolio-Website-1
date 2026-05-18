@@ -94,9 +94,9 @@ export default function Footer() {
         style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.2), rgba(41,151,255,0.2), transparent)' }}
         initial={{ scaleX: 0 }} animate={inView ? { scaleX: 1 } : {}}
         transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }} />
-      <div className="container mx-auto px-6 py-20">
+      <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="mb-16">
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="mb-10 md:mb-16">
           <BrandReveal />
           <motion.div className="text-sm" style={{ color: '#86868b' }}
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
@@ -105,7 +105,7 @@ export default function Footer() {
           </motion.div>
         </motion.div>
         <motion.div variants={containerVariants} initial="hidden"
-          animate={inView ? 'visible' : 'hidden'} className="grid grid-cols-2 md:grid-cols-3 gap-12 mb-16">
+          animate={inView ? 'visible' : 'hidden'} className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 mb-10 md:mb-16">
           {(Object.entries(footerLinks) as [string, { label: string; href: string }[]][]).map(([section, links]) => (
             <motion.div key={section} variants={columnVariants}>
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-5"

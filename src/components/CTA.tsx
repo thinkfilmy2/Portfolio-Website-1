@@ -25,7 +25,7 @@ export default function CTA() {
   }, [btnX, btnY]);
 
   return (
-    <section className="py-32 px-6 overflow-hidden relative" id="contact">
+    <section className="py-16 md:py-32 px-4 md:px-6 overflow-hidden relative" id="contact">
       {/* Background glow — breathing */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
@@ -39,9 +39,9 @@ export default function CTA() {
         />
       </div>
 
-      <div className="container mx-auto max-w-5xl text-center relative z-10">
+      <div className="container mx-auto max-w-5xl text-center relative z-10 overflow-visible">
         {/* Character stagger with enhanced 3D rotation, grouping by word to prevent mid-word wrapping */}
-        <h2 className="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight text-balance mb-12 flex flex-wrap justify-center gap-x-[0.3em] gap-y-4">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight text-balance mb-8 md:mb-12 flex flex-wrap justify-center gap-x-[0.3em] gap-y-2 md:gap-y-4">
           {headlineWords.map((word, wIdx) => {
             const startIdx = headlineWords.slice(0, wIdx).join(' ').length + (wIdx > 0 ? 1 : 0);
             return (
@@ -97,7 +97,7 @@ export default function CTA() {
               boxShadow: '0 0 40px rgba(139,92,246,0.15), 0 0 80px rgba(139,92,246,0.05)',
             }}
             whileTap={{ scale: 0.96 }}
-            className="group flex items-center gap-2.5 px-10 py-5 rounded-full font-semibold text-lg relative overflow-hidden glow-ring cursor-pointer"
+            className="group flex items-center gap-2 md:gap-2.5 px-7 py-4 md:px-10 md:py-5 rounded-full font-semibold text-base md:text-lg relative overflow-hidden glow-ring cursor-pointer"
             style={{
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',

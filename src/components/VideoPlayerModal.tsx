@@ -1,6 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+/* Helper: extract YouTube video ID */
+function getYouTubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
 interface VideoPlayerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,16 +32,19 @@ export default function VideoPlayerModal({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  /* Auto-play on open */
+  const ytId = getYouTubeId(video);
+
+  /* Auto-play on open (non-YouTube only) */
   useEffect(() => {
-    if (isOpen && videoRef.current) {
+    if (isOpen && !ytId && videoRef.current) {
       videoRef.current.play().catch(() => {});
       setIsPlaying(true);
     }
-  }, [isOpen]);
+  }, [isOpen, ytId]);
 
-  /* Track progress */
+  /* Track progress (non-YouTube only) */
   useEffect(() => {
+    if (ytId) return;
     const v = videoRef.current;
     if (!v) return;
     const update = () => {
@@ -48,9 +57,10 @@ export default function VideoPlayerModal({
       v.removeEventListener('timeupdate', update);
       v.removeEventListener('loadedmetadata', update);
     };
-  }, [isOpen]);
+  }, [isOpen, ytId]);
 
   const togglePlay = useCallback(() => {
+    if (ytId) return;
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
@@ -60,22 +70,24 @@ export default function VideoPlayerModal({
       v.pause();
       setIsPlaying(false);
     }
-  }, []);
+  }, [ytId]);
 
   const toggleMute = useCallback(() => {
+    if (ytId) return;
     if (videoRef.current) {
       videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(!videoRef.current.muted ? false : true);
+      setIsMuted(videoRef.current.muted);
     }
-  }, []);
+  }, [ytId]);
 
   const seek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (ytId) return;
     const v = videoRef.current;
     if (!v || !v.duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = (e.clientX - rect.left) / rect.width;
     v.currentTime = pct * v.duration;
-  }, []);
+  }, [ytId]);
 
   const formatTime = (t: number) => {
     const m = Math.floor(t / 60);
@@ -87,7 +99,7 @@ export default function VideoPlayerModal({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:p-8"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 md:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -110,7 +122,7 @@ export default function VideoPlayerModal({
           {/* Close button (Fixed Top Right) */}
           <motion.button
             onClick={onClose}
-            className="fixed top-4 right-4 md:top-8 md:right-8 w-11 h-11 rounded-full flex items-center justify-center cursor-pointer z-[10020]"
+            className="fixed top-3 right-3 md:top-8 md:right-8 w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center cursor-pointer z-[10020]"
             style={{
               background: 'rgba(20,20,25,0.6)',
               backdropFilter: 'blur(20px) saturate(180%)',
@@ -153,46 +165,57 @@ export default function VideoPlayerModal({
             >
               {/* 16:9 Video */}
               <div className="relative" style={{ aspectRatio: '16 / 9' }}>
-                <video
-                  ref={videoRef}
-                  src={video}
-                  className="w-full h-full object-cover"
-                  loop
-                  playsInline
-                  muted={isMuted}
-                  onClick={togglePlay}
-                />
+                {ytId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0&playsinline=1`}
+                    className="w-full h-full border-0"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    title={title}
+                  />
+                ) : (
+                  <video
+                    ref={videoRef}
+                    src={video}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                    muted={isMuted}
+                    onClick={togglePlay}
+                  />
+                )}
 
-                {/* Play/Pause overlay */}
-                <AnimatePresence>
-                  {!isPlaying && (
-                    <motion.div
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={togglePlay}
-                    >
+                {/* Play/Pause overlay (non-YouTube only) */}
+                {!ytId && (
+                  <AnimatePresence>
+                    {!isPlaying && (
                       <motion.div
-                        className="w-16 h-16 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'rgba(255,255,255,0.1)',
-                          backdropFilter: 'blur(20px)',
-                          border: '1px solid rgba(255,255,255,0.15)',
-                        }}
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        whileHover={{ scale: 1.1 }}
+                        className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={togglePlay}
                       >
-                        <div className="w-5 h-5 ml-1 border-y-[10px] border-y-transparent border-l-[14px] border-l-white/80" />
+                        <motion.div
+                          className="w-16 h-16 rounded-full flex items-center justify-center"
+                          style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                          }}
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: 1 }}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <div className="w-5 h-5 ml-1 border-y-[10px] border-y-transparent border-l-[14px] border-l-white/80" />
+                        </motion.div>
                       </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+                  </AnimatePresence>
+                )}
 
                 {/* Title overlay */}
                 <motion.div
-                  className="absolute top-5 left-6 z-10"
+                  className="absolute top-5 left-6 z-10 pointer-events-none"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
@@ -206,7 +229,8 @@ export default function VideoPlayerModal({
                 </motion.div>
               </div>
 
-              {/* Controls bar — glass */}
+              {/* Controls bar — only for non-YouTube */}
+              {!ytId && (
               <div className="px-6 py-4 flex items-center gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Play/Pause */}
                 <motion.button
@@ -268,6 +292,7 @@ export default function VideoPlayerModal({
                   )}
                 </motion.button>
               </div>
+              )}
             </div>
 
             {/* Enter More Projects button */}

@@ -4,14 +4,14 @@ import { useRef, useState, useCallback, MouseEvent } from 'react';
 
 const testimonials = [
   {
-    quote: "Upananda took our vague ideas and transformed them into a breathtaking brand film. His attention to detail and motion design skills are unmatched.",
-    author: "Sarah Jenkins",
-    role: "Marketing Director, TechFlow"
+    quote: "From concept to delivery, every frame felt polished and intentional. One of the best motion designers we’ve worked with.",
+    author: "Ryan Lee",
+    role: "Marketing Head"
   },
   {
-    quote: "Working with Upananda was seamless. He understands rhythm and pacing better than anyone we've collaborated with. Highly recommended.",
-    author: "David Chen",
-    role: "Founder, NeoFin"
+    quote: "The animations brought our product to life perfectly. Smooth workflow, strong creativity, and outstanding execution.",
+    author: "Sophia Bennett",
+    role: "Product Manager"
   }
 ];
 
@@ -64,7 +64,7 @@ function TestimonialCard({
         delay: index * 0.15,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="glass-card p-10 rounded-3xl relative overflow-hidden group border-shimmer"
+      className="glass-card p-6 md:p-10 rounded-2xl md:rounded-3xl relative overflow-hidden group border-shimmer"
       style={{
         rotateX,
         rotateY,
@@ -124,7 +124,7 @@ function TestimonialCard({
 
       {/* Quote text */}
       <motion.p
-        className="text-lg md:text-xl font-medium leading-relaxed mb-8 relative z-10 text-balance"
+        className="text-base md:text-lg lg:text-xl font-medium leading-relaxed mb-6 md:mb-8 relative z-10 text-balance"
         style={{ color: '#f5f5f7' }}
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -153,7 +153,7 @@ function TestimonialCard({
 
 export default function Testimonials() {
   return (
-    <section className="py-32 px-6 relative overflow-hidden" id="testimonials">
+    <section className="py-16 md:py-32 px-4 md:px-6 relative overflow-hidden" id="testimonials">
       {/* Top separator */}
       <motion.div
         className="absolute top-0 left-0 w-full h-[1px]"
@@ -170,24 +170,24 @@ export default function Testimonials() {
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-20 text-center"
+          className="mb-12 md:mb-20 text-center"
         >
-          <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-4">
-            Client <span className="shimmer-text">Feedback</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-3 md:mb-4">
+            <span className="shimmer-text">Testimonials</span>
           </h2>
           <motion.p
             style={{ color: '#86868b' }}
-            className="text-lg max-w-2xl mx-auto"
+            className="text-base md:text-lg max-w-2xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            Don't just take my word for it.
+            Trusted by clients to deliver impactful visual experiences.
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
           {testimonials.map((item, index) => (
             <TestimonialCard key={index} item={item} index={index} />
           ))}

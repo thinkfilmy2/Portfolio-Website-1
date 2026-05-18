@@ -1,9 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 
+/* Helper: extract YouTube video ID */
+function getYouTubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+
+
 /* ── Extended gallery of 12 projects ── */
 const galleryProjects = [
-  { id: 'g1', title: 'Neon Odyssey', category: 'Brand Film', video: 'https://cdn.pixabay.com/video/2024/07/28/223394_large.mp4', accent: '#8b5cf6' },
+  { id: 'g1', title: 'Brandstorm', category: 'Brand Film', video: 'https://youtube.com/shorts/n8xn_yhIs5E', accent: '#8b5cf6' },
   { id: 'g2', title: 'Fintech App UI', category: 'UI Motion', video: 'https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4', accent: '#2997ff' },
   { id: 'g3', title: 'Cinematic Reel', category: 'Showreel', video: 'https://cdn.pixabay.com/video/2021/02/11/64608-511682498_large.mp4', accent: '#ec4899' },
   { id: 'g4', title: 'Eco Sneakers', category: 'Product Animation', video: 'https://cdn.pixabay.com/video/2023/10/06/183868-872276498_large.mp4', accent: '#34d399' },
@@ -39,6 +47,8 @@ function GalleryCard({
     else { v.pause(); v.currentTime = 0; }
   }, [hovered]);
 
+  const ytId = getYouTubeId(project.video);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -71,17 +81,30 @@ function GalleryCard({
         }} />
 
         {/* Video */}
-        <video
-          ref={videoRef}
-          src={project.video}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.5s ease' }}
-          muted={isMuted}
-          loop
-          playsInline
-          preload="metadata"
-          onLoadedData={() => setLoaded(true)}
-        />
+        {ytId ? (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.5s ease' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-0"
+              style={{ width: '300%', height: '300%', pointerEvents: 'none' }}
+              allow="autoplay; encrypted-media"
+              onLoad={() => setLoaded(true)}
+              title={project.title}
+            />
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            src={project.video}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.5s ease' }}
+            muted={isMuted}
+            loop
+            playsInline
+            preload="metadata"
+            onLoadedData={() => setLoaded(true)}
+          />
+        )}
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 pointer-events-none" style={{
@@ -169,18 +192,21 @@ function InlinePlayer({
   const [progress, setProgress] = useState(0);
   const [dur, setDur] = useState(0);
 
-  useEffect(() => {
-    videoRef.current?.play().catch(() => {});
-  }, [project]);
+  const ytId = getYouTubeId(project.video);
 
   useEffect(() => {
+    if (!ytId) videoRef.current?.play().catch(() => {});
+  }, [project, ytId]);
+
+  useEffect(() => {
+    if (ytId) return;
     const v = videoRef.current;
     if (!v) return;
     const u = () => { setProgress(v.currentTime); setDur(v.duration || 0); };
     v.addEventListener('timeupdate', u);
     v.addEventListener('loadedmetadata', u);
     return () => { v.removeEventListener('timeupdate', u); v.removeEventListener('loadedmetadata', u); };
-  }, [project]);
+  }, [project, ytId]);
 
   const fmt = (t: number) => `${Math.floor(t / 60)}:${Math.floor(t % 60).toString().padStart(2, '0')}`;
 
@@ -199,9 +225,18 @@ function InlinePlayer({
       }}
     >
       <div className="relative" style={{ aspectRatio: '16 / 9' }}>
-        <video ref={videoRef} src={project.video} className="w-full h-full object-cover" loop playsInline muted={muted}
-          onClick={() => { const v = videoRef.current; if (v?.paused) { v.play(); setPlaying(true); } else { v?.pause(); setPlaying(false); } }} />
-        <div className="absolute top-4 left-5 z-10">
+        {ytId ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0&playsinline=1`}
+            className="w-full h-full border-0"
+            allow="autoplay; encrypted-media; fullscreen"
+            title={project.title}
+          />
+        ) : (
+          <video ref={videoRef} src={project.video} className="w-full h-full object-cover" loop playsInline muted={muted}
+            onClick={() => { const v = videoRef.current; if (v?.paused) { v.play(); setPlaying(true); } else { v?.pause(); setPlaying(false); } }} />
+        )}
+        <div className="absolute top-4 left-5 z-10 pointer-events-none">
           <div className="text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: project.accent }}>{project.category}</div>
           <div className="text-lg font-semibold" style={{ color: '#f5f5f7' }}>{project.title}</div>
         </div>
@@ -215,6 +250,8 @@ function InlinePlayer({
           </svg>
         </motion.button>
       </div>
+      {/* Controls bar — only for non-YouTube videos */}
+      {!ytId && (
       <div className="px-5 py-3 flex items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <motion.button onClick={() => {
           const v = videoRef.current; if (v?.paused) { v.play(); setPlaying(true); } else { v?.pause(); setPlaying(false); }
@@ -243,6 +280,7 @@ function InlinePlayer({
           </svg>
         </motion.button>
       </div>
+      )}
     </motion.div>
   );
 }
@@ -285,16 +323,16 @@ export default function ProjectGallery({ isOpen, onClose }: ProjectGalleryProps)
 
           {/* Content */}
           <motion.div
-            className="relative z-10 w-full max-w-6xl mx-auto flex-1 overflow-y-auto no-scrollbar px-6 py-10"
+            className="relative z-10 w-full max-w-6xl mx-auto flex-1 overflow-y-auto no-scrollbar px-3 sm:px-6 py-6 md:py-10"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ type: 'spring', stiffness: 250, damping: 28 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6 md:mb-10">
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
                   All <span className="shimmer-text">Projects</span>
                 </h2>
                 <p className="text-sm" style={{ color: '#86868b' }}>{galleryProjects.length} motion design projects</p>
@@ -318,7 +356,7 @@ export default function ProjectGallery({ isOpen, onClose }: ProjectGalleryProps)
             </AnimatePresence>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {galleryProjects.map((p, i) => (
                 <GalleryCard key={p.id} project={p} index={i} onSelect={setSelectedProject} />
               ))}

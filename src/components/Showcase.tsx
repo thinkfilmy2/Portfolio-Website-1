@@ -9,14 +9,30 @@ import {
 import { useState, useRef, useCallback, useEffect, MouseEvent } from 'react';
 import VideoPlayerModal from './VideoPlayerModal';
 import ProjectGallery from './ProjectGallery';
+/* Helper: extract YouTube video ID from various URL formats */
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/* Check if a URL is a YouTube link */
+function isYouTubeUrl(url: string): boolean {
+  return getYouTubeId(url) !== null;
+}
 
 /* ── Project data with demo videos ── */
 const projects = [
   {
     id: 1,
-    title: 'Neon Odyssey',
+    title: 'Brandstorm',
     category: 'Brand Film',
-    video: 'https://cdn.pixabay.com/video/2024/07/28/223394_large.mp4',
+    video: 'https://youtube.com/shorts/n8xn_yhIs5E',
     gradient: 'linear-gradient(135deg, rgba(139,92,246,0.5) 0%, rgba(99,102,241,0.25) 100%)',
     accent: '#8b5cf6',
   },
@@ -56,14 +72,14 @@ const projects = [
 
 /* ── Fan card layout config ── */
 /* Cards spread in a fan: center card is upright, others rotate outward */
-const getFanTransform = (index: number, total: number, isScrolled: boolean) => {
+const getFanTransform = (index: number, total: number, isScrolled: boolean, isMobile: boolean) => {
   const center = (total - 1) / 2;
   const offset = index - center;
 
   if (!isScrolled) {
     /* Before scroll: all cards stacked to the right, hidden */
     return {
-      x: 400 + index * 40,
+      x: (isMobile ? 200 : 400) + index * (isMobile ? 20 : 40),
       rotate: 15 + index * 3,
       scale: 0.85,
       opacity: 0,
@@ -71,12 +87,12 @@ const getFanTransform = (index: number, total: number, isScrolled: boolean) => {
     };
   }
 
-  /* After scroll: fan spread */
-  const rotation = offset * 8; // degrees
-  const xOffset = offset * 160; // horizontal spread
-  const yOffset = Math.abs(offset) * 20; // vertical arc (outer cards lower)
-  const scaleVal = 1 - Math.abs(offset) * 0.06; // center card slightly larger
-  const zIndex = total - Math.abs(offset); // center card on top
+  /* After scroll: fan spread — tighter on mobile */
+  const rotation = offset * (isMobile ? 6 : 8);
+  const xOffset = offset * (isMobile ? 80 : 160);
+  const yOffset = Math.abs(offset) * (isMobile ? 14 : 20);
+  const scaleVal = 1 - Math.abs(offset) * 0.06;
+  const zIndex = total - Math.abs(offset);
 
   return {
     x: xOffset,
@@ -107,6 +123,14 @@ function VideoCard({
   const [isMuted, setIsMuted] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobileView(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   /* 3D tilt on hover */
   const mouseX = useMotionValue(0);
@@ -159,7 +183,7 @@ function VideoCard({
     []
   );
 
-  const fan = getFanTransform(index, total, isRevealed);
+  const fan = getFanTransform(index, total, isRevealed, isMobileView);
 
   return (
     <motion.div
@@ -167,7 +191,7 @@ function VideoCard({
       className="absolute cursor-pointer"
       onClick={() => onSelect(project)}
       style={{
-        width: 'clamp(220px, 22vw, 320px)',
+        width: isMobileView ? 'clamp(140px, 36vw, 200px)' : 'clamp(220px, 22vw, 320px)',
         zIndex: fan.zIndex,
         rotateX: isHovered ? rotateX : 0,
         rotateY: isHovered ? rotateY : 0,
@@ -175,7 +199,7 @@ function VideoCard({
         perspective: 1200,
       }}
       initial={{
-        x: 500 + index * 40,
+        x: (isMobileView ? 250 : 500) + index * (isMobileView ? 20 : 40),
         rotate: 18 + index * 3,
         scale: 0.8,
         opacity: 0,
@@ -218,17 +242,33 @@ function VideoCard({
         />
 
         {/* Video */}
-        <video
-          ref={videoRef}
-          src={project.video}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
-          muted={isMuted}
-          loop
-          playsInline
-          preload="metadata"
-          onLoadedData={() => setVideoLoaded(true)}
-        />
+        {isYouTubeUrl(project.video) ? (
+          <div
+            className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"
+            style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
+          >
+            <iframe
+              src={`https://www.youtube.com/embed/${getYouTubeId(project.video)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(project.video)}&controls=0&showinfo=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-0"
+              style={{ width: '300%', height: '300%', pointerEvents: 'none' }}
+              allow="autoplay; encrypted-media"
+              onLoad={() => setVideoLoaded(true)}
+              title={project.title}
+            />
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            src={project.video}
+            className="absolute inset-0 w-full h-full object-cover z-[1]"
+            style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
+            muted={isMuted}
+            loop
+            playsInline
+            preload="metadata"
+            onLoadedData={() => setVideoLoaded(true)}
+          />
+        )}
 
         {/* Glass overlay gradient (bottom) */}
         <div
@@ -348,7 +388,7 @@ export default function Showcase() {
       ref={sectionRef}
       className="relative overflow-hidden"
       id="work"
-      style={{ paddingTop: '8rem', paddingBottom: '12rem' }}
+      style={{ paddingTop: '2rem', paddingBottom: '4rem' }}
     >
       {/* Background ambient glow */}
       <motion.div
@@ -373,26 +413,26 @@ export default function Showcase() {
           className="text-center mb-24"
         >
           <motion.h2
-            className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-5 shimmer-text inline-block"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight mb-4 md:mb-5 shimmer-text inline-block"
           >
-            Selected Work
+            Motion Archive
           </motion.h2>
           <motion.p
             style={{ color: '#86868b' }}
-            className="text-lg max-w-lg mx-auto"
+            className="text-base md:text-lg max-w-lg mx-auto px-2"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            A curated selection of my recent motion design projects.
+            A curated gallery of animation, branding, and cinematic visuals.
           </motion.p>
         </motion.div>
 
         {/* Fan card layout */}
         <div
           className="relative flex items-center justify-center"
-          style={{ height: 'clamp(380px, 50vh, 520px)' }}
+          style={{ height: 'clamp(280px, 42vh, 520px)' }}
         >
           {projects.map((project, index) => (
             <VideoCard
@@ -418,18 +458,6 @@ export default function Showcase() {
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />
         </div>
-
-        {/* Scroll hint */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isRevealed ? 1 : 0 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-        >
-          <p className="text-xs uppercase tracking-[0.2em]" style={{ color: 'rgba(134,134,139,0.4)' }}>
-            Hover to preview · Click to explore
-          </p>
-        </motion.div>
       </div>
 
       {/* Video Player Modal */}

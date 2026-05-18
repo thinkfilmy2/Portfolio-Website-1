@@ -2,11 +2,11 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 
 const steps = [
-  { num: '01', title: 'Brief', desc: 'Understanding your goals, audience, and vision.' },
-  { num: '02', title: 'Concept', desc: 'Developing storyboards and visual directions.' },
-  { num: '03', title: 'Design', desc: 'Crafting the final style frames and assets.' },
-  { num: '04', title: 'Animation', desc: 'Bringing designs to life with fluid motion.' },
-  { num: '05', title: 'Delivery', desc: 'Finalizing formats and handing off assets.' },
+  { num: '01', title: 'Briefing', desc: 'Defining objectives and creative vision.' },
+  { num: '02', title: 'Storyboarding', desc: 'Sketching scenes and planning transitions.' },
+  { num: '03', title: 'Art Direction', desc: 'Designing the visual identity and compositions.' },
+  { num: '04', title: 'Motion Design', desc: 'Creating polished animations and interactions.' },
+  { num: '05', title: 'Delivery', desc: 'Final rendering, revisions, and asset organization.' },
 ];
 
 function DrawingLine() {
@@ -45,7 +45,7 @@ function DrawingLine() {
 
 export default function Process() {
   return (
-    <section className="py-32 px-6 relative overflow-hidden" id="process">
+    <section className="py-16 md:py-32 px-4 md:px-6 relative overflow-hidden" id="process">
       {/* Top separator */}
       <motion.div
         className="absolute top-0 left-0 w-full h-[1px]"
@@ -62,27 +62,27 @@ export default function Process() {
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="mb-20"
+          className="mb-12 md:mb-20"
         >
-          <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-4">
-            My <span className="shimmer-text">Process</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-3 md:mb-4">
+            Production <span className="shimmer-text">Process</span>
           </h2>
           <motion.p
             style={{ color: '#86868b' }}
-            className="text-lg max-w-2xl"
+            className="text-base md:text-lg max-w-2xl"
             initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            A proven workflow from initial idea to final render.
+            A structured workflow designed for clarity and quality.
           </motion.p>
         </motion.div>
 
         <div className="relative">
           <DrawingLine />
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 md:gap-8">
             {steps.map((step, index) => (
               <motion.div
                 key={index}
@@ -94,11 +94,11 @@ export default function Process() {
                   delay: 0.5 + index * 0.15,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="relative flex flex-col items-start md:items-center md:text-center group"
+                className="relative flex flex-col items-center text-center group"
               >
                 {/* Step circle — frosted glass with pulse on view */}
                 <motion.div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold mb-6 z-10 relative"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center text-base md:text-lg font-semibold mb-4 md:mb-6 z-10 relative"
                   style={{
                     background: 'rgba(255,255,255,0.04)',
                     backdropFilter: 'blur(20px) saturate(150%)',
@@ -141,7 +141,7 @@ export default function Process() {
 
                 {/* Title */}
                 <motion.h3
-                  className="text-xl font-semibold mb-2"
+                  className="text-base md:text-xl font-semibold mb-1.5 md:mb-2"
                   style={{ color: '#f5f5f7' }}
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -154,7 +154,7 @@ export default function Process() {
 
                 {/* Description */}
                 <motion.p
-                  className="text-sm"
+                  className="text-xs md:text-sm"
                   style={{ color: '#86868b' }}
                   initial={{ opacity: 0, y: 8 }}
                   whileInView={{ opacity: 1, y: 0 }}
