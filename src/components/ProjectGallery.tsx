@@ -1,370 +1,357 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
+import { useBlobUrl, getDriveThumbnailUrl } from './utils/videoUtils';
 
-/* Helper: extract YouTube video ID */
-function getYouTubeId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/shorts\/|youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+/* ─── YouTube helpers ─── */
+function getYTId(url: string) {
+  const m = url.match(/(?:youtube\.com\/(?:shorts\/|watch\?v=)|youtu\.be\/)([\w-]{11})/);
   return m ? m[1] : null;
 }
 
+/* ─── Google Drive helpers ─── */
+function isDriveUrl(url: string) {
+  return url.includes('drive.google.com');
+}
 
 
-/* ── Extended gallery of 12 projects ── */
-const galleryProjects = [
-  { id: 'g1', title: 'Brandstorm', category: 'Brand Film', video: 'https://youtube.com/shorts/n8xn_yhIs5E', accent: '#8b5cf6' },
-  { id: 'g2', title: 'Fintech App UI', category: 'UI Motion', video: 'https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4', accent: '#2997ff' },
-  { id: 'g3', title: 'Cinematic Reel', category: 'Showreel', video: 'https://cdn.pixabay.com/video/2021/02/11/64608-511682498_large.mp4', accent: '#ec4899' },
-  { id: 'g4', title: 'Eco Sneakers', category: 'Product Animation', video: 'https://cdn.pixabay.com/video/2023/10/06/183868-872276498_large.mp4', accent: '#34d399' },
-  { id: 'g5', title: 'Abstract Concept', category: '3D Exploration', video: 'https://cdn.pixabay.com/video/2020/02/18/32492-393009498_large.mp4', accent: '#fb923c' },
-  { id: 'g6', title: 'Urban Flow', category: 'Music Video', video: 'https://cdn.pixabay.com/video/2020/10/29/54020-475717399_large.mp4', accent: '#f43f5e' },
-  { id: 'g7', title: 'Aurora Nights', category: 'Visual Effects', video: 'https://cdn.pixabay.com/video/2022/07/20/124902-732236498_large.mp4', accent: '#06b6d4' },
-  { id: 'g8', title: 'Digital Dreams', category: 'Motion Graphics', video: 'https://cdn.pixabay.com/video/2024/01/25/198078-906029691_large.mp4', accent: '#a855f7' },
-  { id: 'g9', title: 'Nature Reborn', category: 'Documentary', video: 'https://cdn.pixabay.com/video/2021/10/12/91416-633860638_large.mp4', accent: '#22c55e' },
-  { id: 'g10', title: 'Tech Launch', category: 'Commercial', video: 'https://cdn.pixabay.com/video/2023/04/11/158635-816700980_large.mp4', accent: '#3b82f6' },
-  { id: 'g11', title: 'Golden Hour', category: 'Cinematic', video: 'https://cdn.pixabay.com/video/2020/07/30/45643-446457947_large.mp4', accent: '#eab308' },
-  { id: 'g12', title: 'Motion Study', category: 'Experimental', video: 'https://cdn.pixabay.com/video/2021/04/10/71080-536982808_large.mp4', accent: '#e879f9' },
-];
 
-/* ── Gallery video card ── */
-function GalleryCard({
-  project,
-  index,
-  onSelect,
-}: {
-  project: (typeof galleryProjects)[number];
-  index: number;
-  onSelect: (p: typeof galleryProjects[number]) => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+
+declare global { interface Window { YT: any; onYouTubeIframeAPIReady: () => void; } }
+let _ytLoaded = false, _ytReady = false;
+const _ytCbs: (() => void)[] = [];
+function loadYT(cb: () => void) {
+  if (_ytReady) { cb(); return; }
+  _ytCbs.push(cb);
+  if (_ytLoaded) return;
+  _ytLoaded = true;
+  window.onYouTubeIframeAPIReady = () => { _ytReady = true; _ytCbs.forEach(f => f()); _ytCbs.length = 0; };
+  const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+}
+
+/* ─── Data ─── */
+import { motionProjectsData as motionProjects, editingProjectsData as editingProjects, Project } from '../data/projects';
+import VideoPlayerModal from './VideoPlayerModal';
+
+/* ─── Inline YT player card ─── */
+function YTCard({ project, accent, index, onSelect }: { project: Project; accent: string; index: number; onSelect: (p: Project) => void }) {
+  const ytId = getYTId(project.video)!;
+  const divRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YT.Player | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (hovered) { v.play().catch(() => {}); }
-    else { v.pause(); v.currentTime = 0; }
-  }, [hovered]);
-
-  const ytId = getYouTubeId(project.video);
+    loadYT(() => {
+      if (!divRef.current || playerRef.current) return;
+      playerRef.current = new window.YT.Player(divRef.current, {
+        videoId: ytId,
+        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, mute: 1 },
+        events: {
+          onReady: () => setReady(true),
+        },
+      });
+    });
+    return () => { playerRef.current?.destroy(); playerRef.current = null; };
+  }, [ytId]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -6, transition: { duration: 0.3 } }}
-      className="cursor-pointer group"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl overflow-hidden flex flex-col cursor-pointer group"
+      style={{ background: 'rgba(18,18,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
       onClick={() => onSelect(project)}
+      whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.15)' }}
     >
-      <div
-        className="relative rounded-2xl overflow-hidden border-shimmer"
-        style={{
-          aspectRatio: '16 / 9',
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: hovered
-            ? `0 20px 50px rgba(0,0,0,0.5), 0 0 30px ${project.accent}15`
-            : '0 10px 30px rgba(0,0,0,0.3)',
-          transition: 'box-shadow 0.4s ease',
-        }}
-      >
-        {/* Gradient fallback */}
-        <div className="absolute inset-0" style={{
-          background: `linear-gradient(135deg, ${project.accent}40, ${project.accent}10)`,
-          opacity: loaded ? 0.3 : 0.7,
-          transition: 'opacity 0.5s ease',
-        }} />
-
-        {/* Video */}
-        {ytId ? (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.5s ease' }}>
-            <iframe
-              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3`}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-0"
-              style={{ width: '300%', height: '300%', pointerEvents: 'none' }}
-              allow="autoplay; encrypted-media"
-              onLoad={() => setLoaded(true)}
-              title={project.title}
-            />
-          </div>
-        ) : (
-          <video
-            ref={videoRef}
-            src={project.video}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.5s ease' }}
-            muted={isMuted}
-            loop
-            playsInline
-            preload="metadata"
-            onLoadedData={() => setLoaded(true)}
-          />
-        )}
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%)',
-        }} />
-
-        {/* Shine sweep */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/6 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[1000ms] pointer-events-none" />
-
-        {/* Number */}
-        <div className="absolute top-3 left-3 text-[10px] font-mono tracking-wider z-10" style={{ color: 'rgba(245,245,247,0.3)' }}>
-          {String(index + 1).padStart(2, '0')}
+      {/* Header */}
+      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div>
+          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
         </div>
-
-        {/* Mute button on hover */}
-        <motion.button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsMuted(!isMuted);
-            if (videoRef.current) videoRef.current.muted = !isMuted;
-          }}
-          className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center z-20 cursor-pointer"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: hovered ? 1 : 0 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2" strokeLinecap="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            {isMuted ? (
-              <><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></>
-            ) : (
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-            )}
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
           </svg>
-        </motion.button>
+        </div>
+      </div>
 
-        {/* Play icon center */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: hovered ? 1 : 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          <motion.div
-            className="w-12 h-12 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.15)' }}
-            whileHover={{ scale: 1.1 }}
-          >
-            <div className="w-3 h-3 ml-0.5 border-y-[6px] border-y-transparent border-l-[9px] border-l-white/80" />
-          </motion.div>
-        </motion.div>
+      {/* Video area */}
+      <div className="relative" style={{ aspectRatio: '16/9', background: '#000' }}>
+        <div ref={divRef} className="w-full h-full" />
+        {!ready && (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg,${accent}30,${accent}10)` }}>
+            <motion.div className="w-8 h-8 rounded-full border-2 border-t-transparent" style={{ borderColor: `${accent}44`, borderTopColor: accent }} animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} />
+          </div>
+        )}
+        {/* Transparent overlay to block YouTube player pointer events so clicks bubble to card */}
+        <div className="absolute inset-0 z-10 bg-transparent" />
+      </div>
 
-        {/* Info */}
-        <motion.div className="absolute bottom-0 left-0 right-0 p-4 z-10"
-          animate={{ opacity: hovered ? 1 : 0.7, y: hovered ? 0 : 4 }}
-          transition={{ duration: 0.25 }}
-        >
-          <div className="text-[9px] uppercase tracking-[0.2em] font-medium mb-1" style={{ color: project.accent }}>{project.category}</div>
-          <div className="text-sm font-semibold" style={{ color: '#f5f5f7' }}>{project.title}</div>
-        </motion.div>
-
-        {/* Hover border glow */}
-        <motion.div className="absolute inset-0 rounded-2xl pointer-events-none"
-          style={{ border: `1px solid ${project.accent}`, opacity: 0 }}
-          animate={{ opacity: hovered ? 0.35 : 0 }}
-        />
+      {/* Project Details */}
+      <div className="p-4 flex flex-col gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+        <p className="text-[13px] leading-relaxed mb-1" style={{ color: '#86868b' }}>{project.summary}</p>
+        <div className="grid grid-cols-2 gap-y-2 gap-x-4 mt-1">
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Client:</span> <span style={{ color: '#e5e5ea' }}>{project.client}</span></div>
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Industry:</span> <span style={{ color: '#e5e5ea' }}>{project.industry}</span></div>
+          <div className="text-[11px] col-span-2"><span style={{ color: '#666' }}>Type:</span> <span style={{ color: '#e5e5ea' }}>{project.type}</span></div>
+        </div>
       </div>
     </motion.div>
   );
 }
 
-/* ── Inline gallery player ── */
-function InlinePlayer({
-  project,
-  onClose,
-}: {
-  project: typeof galleryProjects[number];
-  onClose: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [dur, setDur] = useState(0);
-
-  const ytId = getYouTubeId(project.video);
+/* ─── MP4 card ─── */
+function MP4Card({ project, accent, index, onSelect }: { project: Project; accent: string; index: number; onSelect: (p: Project) => void }) {
+  const { blobUrl, isLoading } = useBlobUrl(project.video);
+  const vRef = useRef<HTMLVideoElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (!ytId) videoRef.current?.play().catch(() => {});
-  }, [project, ytId]);
-
-  useEffect(() => {
-    if (ytId) return;
-    const v = videoRef.current;
-    if (!v) return;
-    const u = () => { setProgress(v.currentTime); setDur(v.duration || 0); };
-    v.addEventListener('timeupdate', u);
-    v.addEventListener('loadedmetadata', u);
-    return () => { v.removeEventListener('timeupdate', u); v.removeEventListener('loadedmetadata', u); };
-  }, [project, ytId]);
-
-  const fmt = (t: number) => `${Math.floor(t / 60)}:${Math.floor(t % 60).toString().padStart(2, '0')}`;
+    const v = vRef.current;
+    if (!v || !blobUrl) return;
+    if (isHovered) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [isHovered, blobUrl]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      className="mb-10 rounded-3xl overflow-hidden"
-      style={{
-        background: 'rgba(20,20,25,0.8)',
-        backdropFilter: 'blur(60px) saturate(200%)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
-      }}
+      initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl overflow-hidden flex flex-col cursor-pointer group"
+      style={{ background: 'rgba(18,18,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+      onClick={() => onSelect(project)}
+      whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.15)' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative" style={{ aspectRatio: '16 / 9' }}>
-        {ytId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0&playsinline=1`}
-            className="w-full h-full border-0"
-            allow="autoplay; encrypted-media; fullscreen"
-            title={project.title}
-          />
-        ) : (
-          <video ref={videoRef} src={project.video} className="w-full h-full object-cover" loop playsInline muted={muted}
-            onClick={() => { const v = videoRef.current; if (v?.paused) { v.play(); setPlaying(true); } else { v?.pause(); setPlaying(false); } }} />
+      {/* Header */}
+      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div>
+          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
+        </div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </div>
+      </div>
+
+      {/* Video area */}
+      <div className="relative" style={{ aspectRatio: '16/9', background: `linear-gradient(135deg,${accent}25,${accent}08)` }}>
+        <video ref={vRef} src={blobUrl || undefined} loop playsInline muted preload="metadata" className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.4s' }}
+          onLoadedData={() => setLoaded(true)}
+        />
+        {(isLoading || !loaded) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
+            <motion.div className="w-8 h-8 rounded-full border-2 border-t-transparent" style={{ borderColor: `${accent}44`, borderTopColor: accent }} animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} />
+          </div>
         )}
-        <div className="absolute top-4 left-5 z-10 pointer-events-none">
-          <div className="text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: project.accent }}>{project.category}</div>
-          <div className="text-lg font-semibold" style={{ color: '#f5f5f7' }}>{project.title}</div>
-        </div>
-        <motion.button onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center z-10 cursor-pointer"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', color: '#86868b' }}
-          whileHover={{ scale: 1.1, color: '#f5f5f7' }} whileTap={{ scale: 0.9 }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </motion.button>
       </div>
-      {/* Controls bar — only for non-YouTube videos */}
-      {!ytId && (
-      <div className="px-5 py-3 flex items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <motion.button onClick={() => {
-          const v = videoRef.current; if (v?.paused) { v.play(); setPlaying(true); } else { v?.pause(); setPlaying(false); }
-        }} className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
-          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          {playing ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#f5f5f7"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-          ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#f5f5f7"><polygon points="6 3 20 12 6 21" /></svg>
-          )}
-        </motion.button>
-        <span className="text-[10px] font-mono" style={{ color: '#86868b' }}>{fmt(progress)}</span>
-        <div className="flex-1 h-1 rounded-full cursor-pointer overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}
-          onClick={(e) => { const v = videoRef.current; if (!v?.duration) return; const r = e.currentTarget.getBoundingClientRect(); v.currentTime = ((e.clientX - r.left) / r.width) * v.duration; }}>
-          <div className="h-full rounded-full" style={{ width: dur ? `${(progress / dur) * 100}%` : '0%', background: `linear-gradient(90deg, ${project.accent}, ${project.accent}88)` }} />
+
+      {/* Project Details */}
+      <div className="p-4 flex flex-col gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+        <p className="text-[13px] leading-relaxed mb-1" style={{ color: '#86868b' }}>{project.summary}</p>
+        <div className="grid grid-cols-2 gap-y-2 gap-x-4 mt-1">
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Client:</span> <span style={{ color: '#e5e5ea' }}>{project.client}</span></div>
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Industry:</span> <span style={{ color: '#e5e5ea' }}>{project.industry}</span></div>
+          <div className="text-[11px] col-span-2"><span style={{ color: '#666' }}>Type:</span> <span style={{ color: '#e5e5ea' }}>{project.type}</span></div>
         </div>
-        <span className="text-[10px] font-mono" style={{ color: '#86868b' }}>{fmt(dur)}</span>
-        <motion.button onClick={() => { setMuted(!muted); if (videoRef.current) videoRef.current.muted = !muted; }}
-          className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
-          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2" strokeLinecap="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            {muted ? (<><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></>) : (<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />)}
-          </svg>
-        </motion.button>
       </div>
-      )}
     </motion.div>
   );
 }
 
-/* ── Main Gallery Panel ── */
-interface ProjectGalleryProps {
-  isOpen: boolean;
-  onClose: () => void;
+/* ─── DriveCard — renders a Google Drive iframe embed ─── */
+function DriveCard({ project, accent, index, onSelect }: { project: Project; accent: string; index: number; onSelect: (p: Project) => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl overflow-hidden flex flex-col cursor-pointer group"
+      style={{ background: 'rgba(18,18,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+      onClick={() => onSelect(project)}
+      whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.15)' }}
+    >
+      {/* Header */}
+      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div>
+          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
+        </div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </div>
+      </div>
+
+      {/* Video area — direct thumbnail with custom play icon */}
+      <div className="relative" style={{ aspectRatio: '16/9', background: '#000', overflow: 'hidden' }}>
+        <img
+          src={getDriveThumbnailUrl(project.video)}
+          alt={project.title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Custom play button overlay */}
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/15 group-hover:border-white/35"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
+          >
+            <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-white ml-0.5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Project Details */}
+      <div className="p-4 flex flex-col gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+        <p className="text-[13px] leading-relaxed mb-1" style={{ color: '#86868b' }}>{project.summary}</p>
+        <div className="grid grid-cols-2 gap-y-2 gap-x-4 mt-1">
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Client:</span> <span style={{ color: '#e5e5ea' }}>{project.client}</span></div>
+          <div className="text-[11px]"><span style={{ color: '#666' }}>Industry:</span> <span style={{ color: '#e5e5ea' }}>{project.industry}</span></div>
+          <div className="text-[11px] col-span-2"><span style={{ color: '#666' }}>Type:</span> <span style={{ color: '#e5e5ea' }}>{project.type}</span></div>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
-export default function ProjectGallery({ isOpen, onClose }: ProjectGalleryProps) {
-  const [selectedProject, setSelectedProject] = useState<typeof galleryProjects[number] | null>(null);
+/* ─── VideoCard router ─── */
+function VideoCard({ project, index, onSelect }: { project: Project; index: number; onSelect: (p: Project) => void }) {
+  if (isDriveUrl(project.video)) {
+    return <DriveCard project={project} accent={project.accent} index={index} onSelect={onSelect} />;
+  }
+  return getYTId(project.video)
+    ? <YTCard project={project} accent={project.accent} index={index} onSelect={onSelect} />
+    : <MP4Card project={project} accent={project.accent} index={index} onSelect={onSelect} />;
+}
 
-  /* Reset on close */
-  useEffect(() => {
-    if (!isOpen) setSelectedProject(null);
-  }, [isOpen]);
+/* ─── Section with 12 cards ─── */
+function Section({ title, subtitle, projects, accentColor, onSelect }: { title: string; subtitle: string; projects: Project[]; accentColor: string; onSelect: (p: Project) => void }) {
+  return (
+    <div className="mb-14">
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="mb-6">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-1 h-6 rounded-full" style={{ background: accentColor }} />
+          <h3 className="text-xl md:text-2xl font-semibold tracking-tight" style={{ color: '#f5f5f7' }}>{title}</h3>
+        </div>
+        <p className="text-sm ml-4" style={{ color: '#86868b' }}>{subtitle}</p>
+      </motion.div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {projects.map((p, i) => <VideoCard key={p.id} project={p} index={i} onSelect={onSelect} />)}
+      </div>
+    </div>
+  );
+}
 
-  /* Lock body scroll */
+/* ─── Main Gallery ─── */
+export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [tab, setTab] = useState<'motion' | 'editing'>('motion');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (!isOpen) {
+      setTab('motion');
+      setSelectedProject(null);
+    }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  const tabs = [
+    { id: 'motion' as const, label: 'Motion Graphics', accent: '#8b5cf6' },
+    { id: 'editing' as const, label: 'Video Editing', accent: '#2997ff' },
+  ];
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-[10000] flex flex-col"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          {/* Backdrop */}
-          <motion.div className="absolute inset-0" onClick={onClose}
-            style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(40px) saturate(120%)' }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+        <motion.div className="fixed inset-0 z-[10000] flex flex-col" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+          <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(40px)' }} onClick={onClose} />
 
-          {/* Content */}
           <motion.div
-            className="relative z-10 w-full max-w-6xl mx-auto flex-1 overflow-y-auto no-scrollbar px-3 sm:px-6 py-6 md:py-10"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ type: 'spring', stiffness: 250, damping: 28 }}
+            className="relative z-10 w-full max-w-7xl mx-auto flex-1 overflow-y-auto px-4 sm:px-6 py-6 md:py-10"
+            style={{ scrollbarWidth: 'none' }}
+            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-6 md:mb-10">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
+            <div className="flex items-start justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
                   All <span className="shimmer-text">Projects</span>
                 </h2>
-                <p className="text-sm" style={{ color: '#86868b' }}>{galleryProjects.length} motion design projects</p>
-              </motion.div>
+                <p className="text-sm" style={{ color: '#86868b' }}>24 projects across 2 disciplines</p>
+              </div>
               <motion.button onClick={onClose}
-                className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#86868b' }}
-                whileHover={{ scale: 1.1, rotate: 90, color: '#f5f5f7' }} whileTap={{ scale: 0.9 }}
-                initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
+                className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#86868b' }}
+                whileHover={{ scale: 1.1, rotate: 90, color: '#f5f5f7' }} whileTap={{ scale: 0.9 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </motion.button>
             </div>
 
-            {/* Inline player */}
-            <AnimatePresence>
-              {selectedProject && (
-                <InlinePlayer project={selectedProject} onClose={() => setSelectedProject(null)} />
-              )}
-            </AnimatePresence>
-
-            {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-              {galleryProjects.map((p, i) => (
-                <GalleryCard key={p.id} project={p} index={i} onSelect={setSelectedProject} />
+            {/* Tab pills */}
+            <div className="flex gap-2 mb-10 p-1 rounded-2xl w-fit" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {tabs.map(t => (
+                <motion.button key={t.id} onClick={() => setTab(t.id)}
+                  className="px-5 py-2 rounded-xl text-sm font-semibold cursor-pointer relative"
+                  style={{ color: tab === t.id ? '#f5f5f7' : '#86868b' }}
+                  whileHover={{ color: '#f5f5f7' }} whileTap={{ scale: 0.97 }}
+                >
+                  {tab === t.id && (
+                    <motion.div layoutId="tabBg" className="absolute inset-0 rounded-xl" style={{ background: `linear-gradient(135deg,${t.accent}44,${t.accent}22)`, border: `1px solid ${t.accent}44` }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </motion.button>
               ))}
             </div>
 
-            {/* Bottom spacer */}
-            <div className="h-10" />
+            {/* Sections */}
+            <AnimatePresence mode="wait">
+              {tab === 'motion' && (
+                <motion.div key="motion" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
+                  <Section title="Motion Graphics Videos" subtitle="12 motion design & animation projects" projects={motionProjects} accentColor="#8b5cf6" onSelect={setSelectedProject} />
+                </motion.div>
+              )}
+              {tab === 'editing' && (
+                <motion.div key="editing" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
+                  <Section title="Video Editing" subtitle="12 cinematic & editorial projects" projects={editingProjects} accentColor="#2997ff" onSelect={setSelectedProject} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="h-12" />
           </motion.div>
+
+          <VideoPlayerModal
+            isOpen={!!selectedProject}
+            onClose={() => setSelectedProject(null)}
+            video={selectedProject?.video || ''}
+            title={selectedProject?.title || ''}
+            category={selectedProject?.category || ''}
+            accent={selectedProject?.accent || '#8b5cf6'}
+            summary={selectedProject?.summary || ''}
+            team={selectedProject?.team || ''}
+            client={selectedProject?.client || ''}
+            industry={selectedProject?.industry || ''}
+            type={selectedProject?.type || ''}
+            onShowGallery={() => {}}
+          />
         </motion.div>
       )}
     </AnimatePresence>

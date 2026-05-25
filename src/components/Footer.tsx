@@ -11,7 +11,7 @@ const footerLinks = {
     { label: 'FAQ', href: '#' },
   ],
   Connect: [
-    { label: 'Instagram', href: 'https://www.instagram.com/think_filmy/' },
+    { label: 'Instagram', href: 'https://www.instagram.com/motionmonck/' },
     { label: 'Email', href: 'mailto:upananadadebnath@gmail.com?subject=Project%20Inquiry' },
   ],
   Legal: [

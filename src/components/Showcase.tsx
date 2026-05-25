@@ -7,6 +7,7 @@ import {
 
 } from 'framer-motion';
 import { useState, useRef, useCallback, useEffect, MouseEvent } from 'react';
+import { getDriveThumbnailUrl } from './utils/videoUtils';
 import VideoPlayerModal from './VideoPlayerModal';
 import ProjectGallery from './ProjectGallery';
 /* Helper: extract YouTube video ID from various URL formats */
@@ -26,49 +27,15 @@ function isYouTubeUrl(url: string): boolean {
   return getYouTubeId(url) !== null;
 }
 
+/* Check if a URL is a Google Drive link */
+function isDriveUrl(url: string): boolean {
+  return url.includes('drive.google.com');
+}
+
+import { motionProjectsData, Project } from '../data/projects';
+
 /* ── Project data with demo videos ── */
-const projects = [
-  {
-    id: 1,
-    title: 'Brandstorm',
-    category: 'Brand Film',
-    video: 'https://youtube.com/shorts/n8xn_yhIs5E',
-    gradient: 'linear-gradient(135deg, rgba(139,92,246,0.5) 0%, rgba(99,102,241,0.25) 100%)',
-    accent: '#8b5cf6',
-  },
-  {
-    id: 2,
-    title: 'Fintech App UI',
-    category: 'UI Motion',
-    video: 'https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4',
-    gradient: 'linear-gradient(135deg, rgba(41,151,255,0.5) 0%, rgba(34,211,238,0.25) 100%)',
-    accent: '#2997ff',
-  },
-  {
-    id: 3,
-    title: 'Cinematic Reel',
-    category: 'Showreel',
-    video: 'https://cdn.pixabay.com/video/2021/02/11/64608-511682498_large.mp4',
-    gradient: 'linear-gradient(135deg, rgba(236,72,153,0.5) 0%, rgba(244,63,94,0.25) 100%)',
-    accent: '#ec4899',
-  },
-  {
-    id: 4,
-    title: 'Eco Sneakers',
-    category: 'Product Animation',
-    video: 'https://cdn.pixabay.com/video/2023/10/06/183868-872276498_large.mp4',
-    gradient: 'linear-gradient(135deg, rgba(52,211,153,0.5) 0%, rgba(16,185,129,0.25) 100%)',
-    accent: '#34d399',
-  },
-  {
-    id: 5,
-    title: 'Abstract Concept',
-    category: '3D Exploration',
-    video: 'https://cdn.pixabay.com/video/2020/02/18/32492-393009498_large.mp4',
-    gradient: 'linear-gradient(135deg, rgba(251,146,60,0.5) 0%, rgba(244,63,94,0.25) 100%)',
-    accent: '#fb923c',
-  },
-];
+const projects = motionProjectsData.slice(0, 5);
 
 /* ── Fan card layout config ── */
 /* Cards spread in a fan: center card is upright, others rotate outward */
@@ -112,11 +79,11 @@ function VideoCard({
   isRevealed,
   onSelect,
 }: {
-  project: (typeof projects)[number];
+  project: Project;
   index: number;
   total: number;
   isRevealed: boolean;
-  onSelect: (p: typeof projects[number]) => void;
+  onSelect: (p: Project) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -238,7 +205,7 @@ function VideoCard({
         {/* Gradient fallback */}
         <div
           className="absolute inset-0"
-          style={{ background: project.gradient, opacity: videoLoaded ? 0.3 : 0.7, transition: 'opacity 0.6s ease' }}
+          style={{ background: (project as any).gradient || `linear-gradient(135deg, ${project.accent}80 0%, ${project.accent}20 100%)`, opacity: videoLoaded ? 0.3 : 0.7, transition: 'opacity 0.6s ease' }}
         />
 
         {/* Video */}
@@ -256,6 +223,14 @@ function VideoCard({
               title={project.title}
             />
           </div>
+        ) : isDriveUrl(project.video) ? (
+          <img
+            src={getDriveThumbnailUrl(project.video)}
+            alt={project.title}
+            className="absolute inset-0 w-full h-full object-cover z-[1]"
+            style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
+            onLoad={() => setVideoLoaded(true)}
+          />
         ) : (
           <video
             ref={videoRef}
@@ -268,6 +243,23 @@ function VideoCard({
             preload="metadata"
             onLoadedData={() => setVideoLoaded(true)}
           />
+        )}
+
+        {/* Custom play button overlay for Drive videos */}
+        {isDriveUrl(project.video) && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <motion.div
+              className="w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-300"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
+              animate={{
+                scale: isHovered ? 1.1 : 1,
+                backgroundColor: isHovered ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
+                borderColor: isHovered ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)',
+              }}
+            >
+              <div className="w-0 h-0 border-y-[6px] border-y-transparent border-l-[10px] border-l-white ml-0.5" />
+            </motion.div>
+          </div>
         )}
 
         {/* Glass overlay gradient (bottom) */}
@@ -458,6 +450,49 @@ export default function Showcase() {
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />
         </div>
+
+        {/* View All / Archive Button */}
+        <motion.div
+          className="flex justify-center mt-12 md:mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <motion.button
+            onClick={() => setShowGallery(true)}
+            className="px-6 py-3 rounded-full text-sm font-semibold cursor-pointer relative group flex items-center gap-2"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              color: '#f5f5f7',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            }}
+            whileHover={{
+              scale: 1.05,
+              background: 'rgba(255,255,255,0.08)',
+              borderColor: 'rgba(255,255,255,0.15)',
+              boxShadow: '0 8px 30px rgba(139,92,246,0.15)',
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="relative z-10">Explore Full Archive</span>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* Video Player Modal */}
@@ -468,6 +503,11 @@ export default function Showcase() {
         title={selectedProject?.title || ''}
         category={selectedProject?.category || ''}
         accent={selectedProject?.accent || '#8b5cf6'}
+        summary={selectedProject?.summary || ''}
+        team={selectedProject?.team || ''}
+        client={selectedProject?.client || ''}
+        industry={selectedProject?.industry || ''}
+        type={selectedProject?.type || ''}
         onShowGallery={() => setShowGallery(true)}
       />
 
