@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-
-const navItems = [
-  { label: 'Home', href: '#' },
-  { label: 'Work', href: '#work' },
-  { label: 'Services', href: '#services' },
-  { label: 'About', href: '#about' },
-  { label: 'Contact', href: '#contact' },
-];
+import { useSiteContent } from '../context/SiteContentContext';
 
 export default function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('Home');
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const content = useSiteContent();
+  const navItems = content.nav?.items || [
+    { label: 'Home', href: '#' },
+    { label: 'Work', href: '#work' },
+    { label: 'Services', href: '#services' },
+    { label: 'About', href: '#about' },
+    { label: 'Contact', href: '#contact' },
+  ];
 
   /* Track active section on scroll */
   useEffect(() => {
@@ -261,11 +263,11 @@ export default function FloatingNav() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <div>Upananda Debnath</div>
+                <div>{content.footer?.copyright || 'Upananda Debnath'}</div>
                 <div className="flex gap-4">
-                  <a href="#" className="hover:text-white transition-colors">Tw</a>
-                  <a href="#" className="hover:text-white transition-colors">In</a>
-                  <a href="#" className="hover:text-white transition-colors">Be</a>
+                  {content.social?.x && <a href={content.social.x} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">X</a>}
+                  {content.social?.instagram && <a href={content.social.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">In</a>}
+                  {content.social?.linkedin && <a href={content.social.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Li</a>}
                 </div>
               </motion.div>
             </motion.div>

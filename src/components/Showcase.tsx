@@ -32,10 +32,8 @@ function isDriveUrl(url: string): boolean {
   return url.includes('drive.google.com');
 }
 
-import { motionProjectsData, Project } from '../data/projects';
-
-/* ── Project data with demo videos ── */
-const projects = motionProjectsData.slice(0, 5);
+import { Project } from '../data/projects';
+import { useSiteContent } from '../context/SiteContentContext';
 
 /* ── Fan card layout config ── */
 /* Cards spread in a fan: center card is upright, others rotate outward */
@@ -99,16 +97,16 @@ function VideoCard({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  /* 3D tilt on hover */
+  /* 3D tilt on hover — reduced spring stiffness for smoother feel */
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [6, -6]), {
-    stiffness: 200,
-    damping: 25,
+    stiffness: isMobileView ? 120 : 200,
+    damping: isMobileView ? 30 : 25,
   });
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-6, 6]), {
-    stiffness: 200,
-    damping: 25,
+    stiffness: isMobileView ? 120 : 200,
+    damping: isMobileView ? 30 : 25,
   });
 
   const handleMouseMove = useCallback(
@@ -158,10 +156,10 @@ function VideoCard({
       className="absolute cursor-pointer"
       onClick={() => onSelect(project)}
       style={{
-        width: isMobileView ? 'clamp(140px, 36vw, 200px)' : 'clamp(220px, 22vw, 320px)',
+        width: isMobileView ? 'clamp(120px, 32vw, 190px)' : 'clamp(220px, 22vw, 320px)',
         zIndex: fan.zIndex,
-        rotateX: isHovered ? rotateX : 0,
-        rotateY: isHovered ? rotateY : 0,
+        rotateX: isHovered && !isMobileView ? rotateX : 0,
+        rotateY: isHovered && !isMobileView ? rotateY : 0,
         transformStyle: 'preserve-3d',
         perspective: 1200,
       }}
@@ -193,8 +191,8 @@ function VideoCard({
         style={{
           aspectRatio: '3 / 4',
           background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          backdropFilter: isMobileView ? 'blur(20px)' : 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: isMobileView ? 'blur(20px)' : 'blur(40px) saturate(180%)',
           border: '1px solid rgba(255,255,255,0.08)',
           boxShadow: isHovered
             ? `0 30px 60px rgba(0,0,0,0.5), 0 0 40px ${project.accent}20`
@@ -353,8 +351,11 @@ function VideoCard({
 export default function Showcase() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showGallery, setShowGallery] = useState(false);
+
+  const content = useSiteContent();
+  const projects = (content.projects?.motion || []).slice(0, 5);
 
   /* Scroll-triggered reveal */
   const { scrollYProgress } = useScroll({
@@ -424,7 +425,7 @@ export default function Showcase() {
         {/* Fan card layout */}
         <div
           className="relative flex items-center justify-center"
-          style={{ height: 'clamp(280px, 42vh, 520px)' }}
+          style={{ height: 'clamp(300px, 48vw, 520px)' }}
         >
           {projects.map((project, index) => (
             <VideoCard

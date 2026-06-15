@@ -1,13 +1,6 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-
-const steps = [
-  { num: '01', title: 'Briefing', desc: 'Defining objectives and creative vision.' },
-  { num: '02', title: 'Storyboarding', desc: 'Sketching scenes and planning transitions.' },
-  { num: '03', title: 'Art Direction', desc: 'Designing the visual identity and compositions.' },
-  { num: '04', title: 'Motion Design', desc: 'Creating polished animations and interactions.' },
-  { num: '05', title: 'Delivery', desc: 'Final rendering, revisions, and asset organization.' },
-];
+import { useSiteContent } from '../context/SiteContentContext';
 
 function DrawingLine() {
   const ref = useRef<HTMLDivElement>(null);
@@ -31,19 +24,18 @@ function DrawingLine() {
         animate={isInView ? { left: '100%', opacity: [0, 1, 1, 0] } : {}}
         transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
       />
-      {/* Secondary trailing particle */}
-      <motion.div
-        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full"
-        style={{ background: 'rgba(139,92,246,0.3)', filter: 'blur(6px)' }}
-        initial={{ left: '0%', opacity: 0 }}
-        animate={isInView ? { left: '100%', opacity: [0, 0.8, 0.8, 0] } : {}}
-        transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-      />
     </div>
   );
 }
 
 export default function Process() {
+  const content = useSiteContent();
+  const process = content.process;
+
+  if (!process) return null;
+
+  const steps = process.steps || [];
+
   return (
     <section className="py-16 md:py-32 px-4 md:px-6 relative overflow-hidden" id="process">
       {/* Top separator */}
@@ -65,7 +57,7 @@ export default function Process() {
           className="mb-12 md:mb-20"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-3 md:mb-4">
-            Production <span className="shimmer-text">Process</span>
+            {process.title} <span className="shimmer-text">{process.titleHighlight}</span>
           </h2>
           <motion.p
             style={{ color: '#86868b' }}
@@ -75,7 +67,7 @@ export default function Process() {
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            A structured workflow designed for clarity and quality.
+            {process.subtitle}
           </motion.p>
         </motion.div>
 
@@ -96,7 +88,7 @@ export default function Process() {
                 }}
                 className="relative flex flex-col items-center text-center group"
               >
-                {/* Step circle — frosted glass with pulse on view */}
+                {/* Step circle — frosted glass */}
                 <motion.div
                   className="w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center text-base md:text-lg font-semibold mb-4 md:mb-6 z-10 relative"
                   style={{
@@ -122,20 +114,10 @@ export default function Process() {
                   }}
                 >
                   {step.num}
-                  {/* Pulse ring */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full"
-                    style={{ border: '1px solid rgba(139,92,246,0.2)' }}
-                    animate={{
-                      scale: [1, 1.4, 1.4],
-                      opacity: [0.4, 0, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 1.5 + index * 0.3,
-                      ease: 'easeOut',
-                    }}
+                  {/* CSS pulse ring — compositor-only, no JS re-renders */}
+                  <span
+                    className="process-pulse-ring"
+                    style={{ animationDelay: `${index * 0.4}s` }}
                   />
                 </motion.div>
 

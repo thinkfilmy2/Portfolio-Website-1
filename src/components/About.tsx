@@ -1,5 +1,7 @@
 import { motion, useInView, Variants, useMotionValue, animate } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
+import { useSiteContent } from '../context/SiteContentContext';
+import type { Stat } from '../types/siteContent';
 import './styles/About.css';
 
 /* ── Animation Variants ── */
@@ -19,57 +21,36 @@ const scaleIn: Variants = {
   }),
 };
 
-/* ── Stats Data ── */
-const stats = [
-  {
-    value: '2000+', label: 'VIDEOS CREATED',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
-        <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  },
-  {
-    value: '5+', label: 'YEARS EXPERIENCE',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
-        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  },
-  {
-    value: '2+', label: 'YEARS IN AI',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
-        <path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.756 4.388a1.5 1.5 0 01-1.394.862H8.15a1.5 1.5 0 01-1.394-.862L5 14.5m14 0H5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  },
-];
+function getStatIcon(iconType: string) {
+  switch (iconType) {
+    case 'video':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
+          <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
+          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'flask':
+    default:
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 18, height: 18, color: '#22c55e' }}>
+          <path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.756 4.388a1.5 1.5 0 01-1.394.862H8.15a1.5 1.5 0 01-1.394-.862L5 14.5m14 0H5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+  }
+}
 
-/* ── Software Icons ── */
-const editingSoftware = [
-  { name: 'Premiere Pro', abbr: 'Pr', bg: '#00005B', color: '#9999FF' },
-  { name: 'After Effects', abbr: 'Ae', bg: '#00005B', color: '#9999FF' },
-  { name: 'Rive', abbr: 'R', bg: '#1a1a2e', color: '#00C4FF', isRive: true },
-  { name: 'Photoshop', abbr: 'Ps', bg: '#001E36', color: '#31A8FF' },
-  { name: 'Figma', abbr: 'F', bg: '#1a1a2e', color: '#A259FF', isFigma: true },
-  { name: 'Illustrator', abbr: 'Ai', bg: '#330000', color: '#FF9A00' },
-];
-
-const aiTools = [
-  'ChatGPT', 'Google Gemini', 'Claude', 'Seedream',
-  'WAN', 'Flux', 'Kling', 'Grok',
-  'OpenAI', 'VEO', 'And more.',
-];
-
-function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
+function StatCard({ s, i }: { s: Stat; i: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: '-80px' });
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // Extract number and suffix from s.value (e.g. '2000+' -> 2000 and '+')
   const numVal = parseInt(s.value.replace(/[^0-9]/g, ''), 10) || 0;
   const suffix = s.value.replace(/[0-9]/g, '');
 
@@ -80,7 +61,7 @@ function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
     if (isInView) {
       const controls = animate(motionValue, numVal, {
         duration: 2.0,
-        ease: [0.22, 1, 0.36, 1], // beautiful smooth easeOut
+        ease: [0.22, 1, 0.36, 1],
         onUpdate: (latest) => setCount(Math.round(latest)),
       });
       return () => controls.stop();
@@ -104,20 +85,10 @@ function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      className="about-stat-card"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '14px 20px',
-        borderRadius: 14,
-        background: 'rgba(255,255,255,0.04)',
         border: isHovered ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.06)',
-        cursor: 'default',
-        flex: 1,
-        minWidth: 130,
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'border-color 0.3s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+        transition: 'border-color 0.3s ease',
       }}
       whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(34,197,94,0.12)' }}
     >
@@ -133,8 +104,7 @@ function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
           zIndex: 1,
         }}
       />
-      
-      {/* Content wrapper with z-index to stay above spotlight */}
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 3, width: '100%' }}>
         <div style={{
           width: 36, height: 36,
@@ -144,7 +114,7 @@ function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
-          {s.icon}
+          {getStatIcon(s.iconType)}
         </div>
         <div>
           <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: '#f5f5f7', lineHeight: 1.2 }}>
@@ -163,77 +133,40 @@ function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' });
+  const content = useSiteContent();
+  const about = content.about;
+
+  if (!about) return null;
+
+  const stats = about.stats || [];
+  const editingSoftware = about.editingSoftware || [];
+  const aiTools = about.aiTools || [];
 
   return (
     <section
       ref={sectionRef}
       id="about"
-      style={{
-        position: 'relative',
-        minHeight: '100vh',
-        padding: '80px 48px 60px',
-        overflow: 'hidden',
-        background: '#0a0a0a',
-        display: 'flex',
-        alignItems: 'flex-start',
-      }}
+      className="about-section"
     >
       {/* ── Green Glow Behind Photo ── */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        right: '15%',
-        width: 500,
-        height: 700,
-        transform: 'translateY(-50%)',
-        background: 'radial-gradient(ellipse, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.06) 40%, transparent 70%)',
-        filter: 'blur(80px)',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }} />
+      <div className="about-photo-glow" />
 
       {/* ── Background Portrait ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0, right: 0,
-        width: '50%',
-        height: '100%',
-        zIndex: 2,
-        overflow: 'hidden',
-      }}>
+      <div className="about-photo-container">
         <motion.img
-          src="/images/05.2.1.webp"
-          alt="Upananda Debnath"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center top',
-            filter: 'brightness(0.85) contrast(1.05)',
-            mixBlendMode: 'luminosity',
-          }}
+          src={about.image ? (about.image.startsWith('http') || about.image.startsWith('/') ? about.image : `http://localhost:3001${about.image}`) : "/images/05.2.1.webp"}
+          alt={about.name || "Upananda Debnath"}
+          className="about-photo-img"
           initial={{ opacity: 0, scale: 1.05 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         />
         {/* Overlay gradients */}
-        <div className="about-gradient-overlay" style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-        }} />
+        <div className="about-gradient-overlay" />
       </div>
 
       {/* ── Main Content ── */}
-      <div style={{
-        position: 'relative',
-        zIndex: 5,
-        width: '55%',
-        maxWidth: 680,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 28,
-      }}>
+      <div className="about-content">
         {/* ── Header ── */}
         <motion.div
           initial="hidden"
@@ -243,9 +176,9 @@ export default function About() {
           <motion.p
             custom={0}
             variants={fadeUp}
-            style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', marginBottom: 4 }}
+            className="about-greeting"
           >
-            HEY, I'M{' '}
+            {about.greeting || "HEY, I'M"}{' '}
             <motion.span
               style={{ display: 'inline-block', transformOrigin: '70% 70%' }}
               animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
@@ -255,66 +188,41 @@ export default function About() {
           <motion.h2
             custom={1}
             variants={fadeUp}
-            style={{
-              fontSize: 'clamp(56px, 8vw, 100px)',
-              fontWeight: 800,
-              lineHeight: 0.95,
-              color: '#f5f5f7',
-              letterSpacing: '-0.02em',
-              margin: 0,
-            }}
+            className="about-name"
           >
-            UPANANDA
+            {about.name || "UPANANDA"}
           </motion.h2>
           <motion.p
             custom={2}
             variants={fadeUp}
-            style={{
-              fontSize: 'clamp(12px, 1.4vw, 16px)',
-              letterSpacing: '0.35em',
-              color: 'rgba(255,255,255,0.45)',
-              textTransform: 'uppercase',
-              fontWeight: 500,
-              marginTop: 8,
-            }}
+            className="about-title-label"
           >
-            MOTION DESIGNER &amp; VIDEO EDITOR
+            {about.title || "MOTION DESIGNER & VIDEO EDITOR"}
           </motion.p>
         </motion.div>
 
         {/* ── Bio Paragraphs ── */}
         <motion.div
-          style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}
+          className="about-bio"
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
           variants={{ visible: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } } }}
         >
-          <motion.p
-            custom={0}
-            variants={fadeUp}
-            style={{ fontSize: 13, lineHeight: 1.75, color: 'rgba(255,255,255,0.55)', margin: 0 }}
-          >
-            I'm a Motion Designer and Video Editor specializing in high-end visual storytelling, advanced motion graphics, and cinematic editing. I create visually engaging content that blends creativity with strategy to help brands stand out.
-          </motion.p>
-          <motion.p
-            custom={1}
-            variants={fadeUp}
-            style={{ fontSize: 13, lineHeight: 1.75, color: 'rgba(255,255,255,0.55)', margin: 0 }}
-          >
-            My expertise includes SaaS motion design, AI filmmaking, AI-powered video editing and generation, UI motion design, and interactive motion experiences. I also have strong knowledge of sound design, branding, color grading, typography, and visual design principles.
-          </motion.p>
-          <motion.p
-            custom={2}
-            variants={fadeUp}
-            style={{ fontSize: 13, lineHeight: 1.75, color: 'rgba(255,255,255,0.55)', margin: 0 }}
-          >
-            With a deep understanding of consistent brand identity and brand color systems, I focus on creating polished, modern, and impactful visuals that not only look professional but also communicate clearly and effectively.
-          </motion.p>
+          {(about.bio || []).map((para, idx) => (
+            <motion.p
+              key={idx}
+              custom={idx}
+              variants={fadeUp}
+              className="about-bio-para"
+            >
+              {para}
+            </motion.p>
+          ))}
         </motion.div>
 
         {/* ── Stats Bar ── */}
         <motion.div
-          style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}
+          className="about-stats"
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
           variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }}
@@ -325,17 +233,10 @@ export default function About() {
         </motion.div>
 
         {/* ── Bottom Cards Row ── */}
-        <div style={{ display: 'flex', gap: 14, marginTop: 4, flexWrap: 'wrap' }}>
+        <div className="about-tools-row">
           {/* Editing Software Card */}
           <motion.div
-            style={{
-              flex: '1 1 200px',
-              borderRadius: 16,
-              padding: '20px 22px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(20px)',
-            }}
+            className="about-tools-card"
             initial="hidden"
             animate={isInView ? 'visible' : 'hidden'}
             variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.7 } } }}
@@ -344,11 +245,7 @@ export default function About() {
             <motion.h3
               variants={fadeUp}
               custom={0}
-              style={{
-                fontSize: 11, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)',
-                textTransform: 'uppercase', fontWeight: 600, margin: '0 0 16px',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
+              className="about-tools-heading"
             >
               EDITING SOFTWARE I USE{' '}
               <motion.span
@@ -360,7 +257,7 @@ export default function About() {
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </motion.h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="about-software-grid">
               {editingSoftware.map((sw, i) => (
                 <motion.div
                   key={sw.name}
@@ -396,14 +293,7 @@ export default function About() {
 
           {/* AI Tools Card */}
           <motion.div
-            style={{
-              flex: '1 1 180px',
-              borderRadius: 16,
-              padding: '20px 22px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(20px)',
-            }}
+            className="about-tools-card"
             initial="hidden"
             animate={isInView ? 'visible' : 'hidden'}
             variants={{ visible: { transition: { staggerChildren: 0.04, delayChildren: 0.8 } } }}
@@ -412,11 +302,7 @@ export default function About() {
             <motion.h3
               variants={fadeUp}
               custom={0}
-              style={{
-                fontSize: 11, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)',
-                textTransform: 'uppercase', fontWeight: 600, margin: '0 0 16px',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
+              className="about-tools-heading"
             >
               AI TOOLS I USE{' '}
               <motion.span
@@ -428,7 +314,7 @@ export default function About() {
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               />
             </motion.h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
+            <div className="about-aitools-grid">
               {aiTools.map((tool, i) => (
                 <motion.span
                   key={tool}

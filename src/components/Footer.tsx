@@ -1,12 +1,6 @@
 import { motion, useInView, Variants } from 'framer-motion';
 import { useRef } from 'react';
-
-const footerLinks = {
-  Connect: [
-    { label: 'Instagram', href: 'https://www.instagram.com/motionmonck/' },
-    { label: 'Email', href: 'mailto:upananadadebnath@gmail.com?subject=Project%20Inquiry' },
-  ],
-};
+import { useSiteContent } from '../context/SiteContentContext';
 
 const containerVariants = {
   hidden: {},
@@ -52,10 +46,10 @@ function FooterLink({ href, label, index }: { href: string; label: string; index
   );
 }
 
-function BrandReveal() {
+function BrandReveal({ name }: { name: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
-  const chars = 'UPANANDA DEBNATH'.split('');
+  const chars = (name || 'UPANANDA DEBNATH').split('');
   return (
     <div ref={ref} className="text-xl font-semibold tracking-tight mb-2 flex" style={{ color: '#f5f5f7' }}>
       {chars.map((char, i) => (
@@ -76,6 +70,23 @@ function BrandReveal() {
 export default function Footer() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
+  const content = useSiteContent();
+  const footer = content.footer || {
+    name: "UPANANDA DEBNATH",
+    title: "Motion Designer & Video Editor",
+    copyright: "Upananda Debnath",
+    tagline: "Crafted with motion & passion."
+  };
+  const social = content.social || {};
+
+  const footerLinks = {
+    Connect: [
+      social.instagram ? { label: 'Instagram', href: social.instagram } : null,
+      social.email ? { label: 'Email', href: `mailto:${social.email}?subject=Project%20Inquiry` } : null,
+      social.whatsapp ? { label: 'WhatsApp', href: social.whatsapp } : null,
+    ].filter(Boolean) as { label: string; href: string }[],
+  };
+
   return (
     <footer ref={ref} className="relative overflow-hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       <motion.div className="absolute top-0 left-0 w-full h-[1px]"
@@ -85,11 +96,11 @@ export default function Footer() {
       <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="mb-10 md:mb-16">
-          <BrandReveal />
+          <BrandReveal name={footer.name} />
           <motion.div className="text-sm" style={{ color: '#86868b' }}
             initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
             transition={{ delay: 0.6, duration: 0.5 }}>
-            Motion Designer & Video Editor
+            {footer.title}
           </motion.div>
         </motion.div>
         <motion.div variants={containerVariants} initial="hidden"
@@ -113,12 +124,12 @@ export default function Footer() {
             initial={{ scaleX: 0 }} animate={inView ? { scaleX: 1 } : {}}
             transition={{ duration: 1.2, delay: 0.4, ease: 'easeInOut' }} />
           <motion.div className="text-xs" style={{ color: '#86868b' }} whileHover={{ color: '#f5f5f7' }}>
-            © {new Date().getFullYear()} Upananda Debnath. All rights reserved.
+            © {new Date().getFullYear()} {footer.copyright}. All rights reserved.
           </motion.div>
           <motion.div className="text-xs" style={{ color: 'rgba(134,134,139,0.5)' }}
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
-            Crafted with motion & passion.
+            {footer.tagline}
           </motion.div>
         </motion.div>
       </div>

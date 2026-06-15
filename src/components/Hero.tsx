@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, Variants } from 'framer-motion';
+import { useSiteContent } from '../context/SiteContentContext';
 
 const wordAnimation: Variants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(8px)', scale: 0.96 },
@@ -18,7 +19,12 @@ const wordAnimation: Variants = {
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
-
+  const content = useSiteContent();
+  const hero = content.hero || {
+    badge: 'Motion Designer & Video Editor',
+    headline: 'I craft compelling motion stories for modern brands',
+    subtext: 'Creating bold motion visuals that combine creativity with modern technology. Focused on SaaS motion design, advanced animation systems, and AI workflows.'
+  };
 
   /* Parallax for badge & subtext */
   const { scrollYProgress } = useScroll({
@@ -29,7 +35,7 @@ export default function Hero() {
   const subtextY = useTransform(scrollYProgress, [0, 1], [0, -30]);
   const headlineY = useTransform(scrollYProgress, [0, 1], [0, -45]);
 
-  const headlineWords = 'I craft compelling motion stories for modern brands'.split(' ');
+  const headlineWords = (hero.headline || '').split(' ');
 
   return (
     <section
@@ -58,7 +64,7 @@ export default function Hero() {
             style={{ y: badgeY }}
           >
             <span className="text-xs md:text-sm font-medium tracking-wide relative z-10" style={{ color: '#86868b' }}>
-              Motion Designer &amp; Video Editor
+              {hero.badge}
             </span>
           </motion.div>
 
@@ -94,8 +100,7 @@ export default function Hero() {
             className="text-base md:text-lg lg:text-xl max-w-2xl text-balance mb-10 md:mb-14 px-2"
             style={{ color: '#86868b', lineHeight: 1.7, y: subtextY }}
           >
-            Creating bold motion visuals that combine creativity with modern technology.
-            Focused on SaaS motion design, advanced animation systems, and AI workflows.
+            {hero.subtext}
           </motion.p>
 
         </div>

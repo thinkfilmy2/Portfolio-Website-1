@@ -1,10 +1,19 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useCallback } from 'react';
-
-const headlineWords = "Let's create something bold.".split(' ');
+import { useSiteContent } from '../context/SiteContentContext';
 
 export default function CTA() {
+  const content = useSiteContent();
+  const cta = content.cta || {
+    headline: "Let's create something bold.",
+    buttonText: "Create With Me",
+    buttonLink: "https://wa.me/919100266022",
+    email: "upananadadebnath@gmail.com"
+  };
+
+  const headlineWords = (cta.headline || "").split(' ');
+
   /* Magnetic hover for Start Project button */
   const btnX = useMotionValue(0);
   const btnY = useMotionValue(0);
@@ -40,40 +49,33 @@ export default function CTA() {
       </div>
 
       <div className="container mx-auto max-w-5xl text-center relative z-10 overflow-visible">
-        {/* Character stagger with enhanced 3D rotation, grouping by word to prevent mid-word wrapping */}
-        <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight text-balance mb-8 md:mb-12 flex flex-wrap justify-center gap-x-[0.3em] gap-y-2 md:gap-y-4">
-          {headlineWords.map((word, wIdx) => {
-            const startIdx = headlineWords.slice(0, wIdx).join(' ').length + (wIdx > 0 ? 1 : 0);
-            return (
-              <span key={wIdx} className="inline-flex whitespace-nowrap">
-                {word.split('').map((char, cIdx) => {
-                  const globalIdx = startIdx + cIdx;
-                  return (
-                    <motion.span
-                      key={cIdx}
-                      className="inline-block"
-                      style={{ color: '#f5f5f7' }}
-                      initial={{ opacity: 0, y: 60, rotateX: 90, filter: 'blur(8px)' }}
-                      whileInView={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }}
-                      viewport={{ once: true, margin: '-100px' }}
-                      transition={{
-                        duration: 0.5,
-                        delay: globalIdx * 0.025,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      whileHover={{
-                        color: '#8b5cf6',
-                        scale: 1.15,
-                        transition: { duration: 0.15 },
-                      }}
-                    >
-                      {char}
-                    </motion.span>
-                  );
-                })}
-              </span>
-            );
-          })}
+        {/*
+          Per-word 3D rotation — same premium feel as per-char but ~6x fewer motion nodes.
+          Each word slides up with rotateX (3D flip) from below.
+        */}
+        <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight text-balance mb-8 md:mb-12 flex flex-wrap justify-center gap-x-[0.3em] gap-y-2 md:gap-y-3">
+          {headlineWords.map((word, wIdx) => (
+            <motion.span
+              key={wIdx}
+              className="inline-block"
+              style={{ color: '#f5f5f7', perspective: 800 }}
+              initial={{ opacity: 0, y: 50, rotateX: 80, filter: 'blur(6px)' }}
+              whileInView={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{
+                duration: 0.65,
+                delay: wIdx * 0.09,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              whileHover={{
+                color: '#8b5cf6',
+                scale: 1.06,
+                transition: { duration: 0.15 },
+              }}
+            >
+              {word}
+            </motion.span>
+          ))}
         </h2>
 
         <motion.div
@@ -85,7 +87,7 @@ export default function CTA() {
         >
           {/* Magnetic glass CTA button with glow ring */}
           <motion.a
-            href="https://wa.me/919100266022"
+            href={cta.buttonLink}
             target="_blank"
             rel="noopener noreferrer"
             onMouseMove={handleBtnMouseMove}
@@ -128,7 +130,7 @@ export default function CTA() {
               transition={{ duration: 0.4 }}
             />
 
-            <span className="relative z-10">Create With Me</span>
+            <span className="relative z-10">{cta.buttonText}</span>
             <motion.span
               className="relative z-10 inline-block"
               animate={{ x: [0, 4, 0] }}
@@ -140,7 +142,7 @@ export default function CTA() {
 
           {/* Email with animated underline */}
           <motion.a
-            href="mailto:upananadadebnath@gmail.com?subject=Project%20Inquiry"
+            href={`mailto:${cta.email}?subject=Project%20Inquiry`}
             className="text-base font-medium hover-underline"
             style={{ color: '#86868b' }}
             whileHover={{
@@ -148,7 +150,7 @@ export default function CTA() {
               transition: { duration: 0.2 },
             }}
           >
-            upananadadebnath@gmail.com
+            {cta.email}
           </motion.a>
         </motion.div>
       </div>

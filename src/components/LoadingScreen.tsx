@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSiteContent } from '../context/SiteContentContext';
 
 interface LoadingScreenProps {
   onComplete: () => void;
 }
 
-const nameLetters = 'UPANANDA DEBNATH'.split('');
-
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
+  const content = useSiteContent();
+  const loading = content.loading || {
+    name: "UPANANDA DEBNATH",
+    subtitle: "Motion Designer & Video Editor"
+  };
+
+  const nameLetters = (loading.name || "UPANANDA DEBNATH").split('');
 
   useEffect(() => {
     const duration = 2500;
@@ -72,7 +78,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.7 }}
       >
-        Motion Designer & Video Editor
+        {loading.subtitle}
       </motion.p>
 
       {/* Progress bar — frosted */}

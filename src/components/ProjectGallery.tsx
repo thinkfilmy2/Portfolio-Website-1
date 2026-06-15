@@ -29,7 +29,8 @@ function loadYT(cb: () => void) {
 }
 
 /* ─── Data ─── */
-import { motionProjectsData as motionProjects, editingProjectsData as editingProjects, Project } from '../data/projects';
+import { Project } from '../data/projects';
+import { useSiteContent } from '../context/SiteContentContext';
 import VideoPlayerModal from './VideoPlayerModal';
 
 /* ─── Inline YT player card ─── */
@@ -250,19 +251,28 @@ export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; o
   const [tab, setTab] = useState<'motion' | 'editing'>('motion');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
+  const content = useSiteContent();
+  const motionProjects = content.projects?.motion || [];
+  const editingProjects = content.projects?.editing || [];
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     if (!isOpen) {
-      setTab('motion');
       setSelectedProject(null);
+    } else {
+      if (motionProjects.length > 0) {
+        setTab('motion');
+      } else if (editingProjects.length > 0) {
+        setTab('editing');
+      }
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   const tabs = [
-    { id: 'motion' as const, label: 'Motion Graphics', accent: '#8b5cf6' },
-    { id: 'editing' as const, label: 'Video Editing', accent: '#2997ff' },
-  ];
+    { id: 'motion' as const, label: 'Motion Graphics', accent: '#8b5cf6', show: motionProjects.length > 0 },
+    { id: 'editing' as const, label: 'Video Editing', accent: '#2997ff', show: editingProjects.length > 0 },
+  ].filter(t => t.show);
 
   return (
     <AnimatePresence>
@@ -282,7 +292,13 @@ export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; o
                 <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
                   All <span className="shimmer-text">Projects</span>
                 </h2>
-                <p className="text-sm" style={{ color: '#86868b' }}>35 projects across 2 disciplines</p>
+                <p className="text-sm" style={{ color: '#86868b' }}>
+                  {(() => {
+                    const total = motionProjects.length + editingProjects.length;
+                    const disciplines = (motionProjects.length > 0 ? 1 : 0) + (editingProjects.length > 0 ? 1 : 0);
+                    return `${total} project${total !== 1 ? 's' : ''} across ${disciplines} discipline${disciplines !== 1 ? 's' : ''}`;
+                  })()}
+                </p>
               </div>
               <motion.button onClick={onClose}
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
@@ -295,31 +311,33 @@ export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; o
             </div>
 
             {/* Tab pills */}
-            <div className="flex gap-2 mb-10 p-1 rounded-2xl w-fit" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              {tabs.map(t => (
-                <motion.button key={t.id} onClick={() => setTab(t.id)}
-                  className="px-5 py-2 rounded-xl text-sm font-semibold cursor-pointer relative"
-                  style={{ color: tab === t.id ? '#f5f5f7' : '#86868b' }}
-                  whileHover={{ color: '#f5f5f7' }} whileTap={{ scale: 0.97 }}
-                >
-                  {tab === t.id && (
-                    <motion.div layoutId="tabBg" className="absolute inset-0 rounded-xl" style={{ background: `linear-gradient(135deg,${t.accent}44,${t.accent}22)`, border: `1px solid ${t.accent}44` }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
-                  )}
-                  <span className="relative z-10">{t.label}</span>
-                </motion.button>
-              ))}
-            </div>
+            {tabs.length > 1 && (
+              <div className="flex gap-2 mb-10 p-1 rounded-2xl w-fit" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {tabs.map(t => (
+                  <motion.button key={t.id} onClick={() => setTab(t.id)}
+                    className="px-5 py-2 rounded-xl text-sm font-semibold cursor-pointer relative"
+                    style={{ color: tab === t.id ? '#f5f5f7' : '#86868b' }}
+                    whileHover={{ color: '#f5f5f7' }} whileTap={{ scale: 0.97 }}
+                  >
+                    {tab === t.id && (
+                      <motion.div layoutId="tabBg" className="absolute inset-0 rounded-xl" style={{ background: `linear-gradient(135deg,${t.accent}44,${t.accent}22)`, border: `1px solid ${t.accent}44` }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
+                    )}
+                    <span className="relative z-10">{t.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            )}
 
             {/* Sections */}
             <AnimatePresence mode="wait">
-              {tab === 'motion' && (
+              {tab === 'motion' && motionProjects.length > 0 && (
                 <motion.div key="motion" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
-                  <Section title="Motion Graphics Videos" subtitle="12 motion design & animation projects" projects={motionProjects} accentColor="#8b5cf6" onSelect={setSelectedProject} />
+                  <Section title="Motion Graphics Videos" subtitle={`${motionProjects.length} motion design & animation projects`} projects={motionProjects} accentColor="#8b5cf6" onSelect={setSelectedProject} />
                 </motion.div>
               )}
-              {tab === 'editing' && (
+              {tab === 'editing' && editingProjects.length > 0 && (
                 <motion.div key="editing" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
-                  <Section title="Video Editing" subtitle="23 cinematic & editorial projects" projects={editingProjects} accentColor="#2997ff" onSelect={setSelectedProject} />
+                  <Section title="Video Editing" subtitle={`${editingProjects.length} cinematic & editorial projects`} projects={editingProjects} accentColor="#2997ff" onSelect={setSelectedProject} />
                 </motion.div>
               )}
             </AnimatePresence>
