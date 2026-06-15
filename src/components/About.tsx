@@ -1,5 +1,5 @@
-import { motion, useInView, Variants } from 'framer-motion';
-import { useRef } from 'react';
+import { motion, useInView, Variants, useMotionValue, animate } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
 import './styles/About.css';
 
 /* ── Animation Variants ── */
@@ -63,6 +63,103 @@ const aiTools = [
   'OpenAI', 'VEO', 'And more.',
 ];
 
+function StatCard({ s, i }: { s: typeof stats[number]; i: number }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: '-80px' });
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Extract number and suffix from s.value (e.g. '2000+' -> 2000 and '+')
+  const numVal = parseInt(s.value.replace(/[^0-9]/g, ''), 10) || 0;
+  const suffix = s.value.replace(/[0-9]/g, '');
+
+  const motionValue = useMotionValue(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (isInView) {
+      const controls = animate(motionValue, numVal, {
+        duration: 2.0,
+        ease: [0.22, 1, 0.36, 1], // beautiful smooth easeOut
+        onUpdate: (latest) => setCount(Math.round(latest)),
+      });
+      return () => controls.stop();
+    }
+  }, [isInView, numVal, motionValue]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      custom={i}
+      variants={scaleIn}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '14px 20px',
+        borderRadius: 14,
+        background: 'rgba(255,255,255,0.04)',
+        border: isHovered ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.06)',
+        cursor: 'default',
+        flex: 1,
+        minWidth: 130,
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'border-color 0.3s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+      }}
+      whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(34,197,94,0.12)' }}
+    >
+      {/* Interactive Spotlight Glow */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(100px circle at ${coords.x}px ${coords.y}px, rgba(34,197,94,0.12), transparent 80%)`,
+          transition: 'opacity 0.3s ease',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+      
+      {/* Content wrapper with z-index to stay above spotlight */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 3, width: '100%' }}>
+        <div style={{
+          width: 36, height: 36,
+          borderRadius: 10,
+          background: 'rgba(34,197,94,0.08)',
+          border: '1px solid rgba(34,197,94,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          {s.icon}
+        </div>
+        <div>
+          <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: '#f5f5f7', lineHeight: 1.2 }}>
+            {count.toLocaleString()}
+            {suffix}
+          </span>
+          <span style={{ display: 'block', fontSize: 9, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', fontWeight: 500, marginTop: 1 }}>
+            {s.label}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' });
@@ -120,14 +217,9 @@ export default function About() {
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         />
         {/* Overlay gradients */}
-        <div style={{
+        <div className="about-gradient-overlay" style={{
           position: 'absolute',
           inset: 0,
-          background: `
-            linear-gradient(to right, #0a0a0a 0%, rgba(10,10,10,0.85) 25%, rgba(10,10,10,0.3) 50%, transparent 70%),
-            linear-gradient(to top, #0a0a0a 0%, rgba(10,10,10,0.6) 20%, transparent 50%),
-            linear-gradient(to bottom, #0a0a0a 0%, transparent 15%)
-          `,
           pointerEvents: 'none',
         }} />
       </div>
@@ -228,40 +320,7 @@ export default function About() {
           variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.5 } } }}
         >
           {stats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              custom={i}
-              variants={scaleIn}
-              whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(34,197,94,0.15)' }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '14px 20px',
-                borderRadius: 14,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                cursor: 'default',
-                flex: 1,
-                minWidth: 130,
-                transition: 'all 0.3s cubic-bezier(0.22,1,0.36,1)',
-              }}
-            >
-              <div style={{
-                width: 36, height: 36,
-                borderRadius: 10,
-                background: 'rgba(34,197,94,0.08)',
-                border: '1px solid rgba(34,197,94,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                {s.icon}
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: '#f5f5f7', lineHeight: 1.2 }}>{s.value}</span>
-                <span style={{ display: 'block', fontSize: 9, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', fontWeight: 500, marginTop: 1 }}>{s.label}</span>
-              </div>
-            </motion.div>
+            <StatCard key={s.label} s={s} i={i} />
           ))}
         </motion.div>
 

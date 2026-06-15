@@ -63,18 +63,9 @@ function YTCard({ project, accent, index, onSelect }: { project: Project; accent
       whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.15)' }}
     >
       {/* Header */}
-      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div>
-          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
-          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
-        </div>
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </div>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+        <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
       </div>
 
       {/* Video area */}
@@ -108,6 +99,16 @@ function MP4Card({ project, accent, index, onSelect }: { project: Project; accen
   const vRef = useRef<HTMLVideoElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<string>('16/9'); // default; overridden on metadata load
+
+  // Auto-detect portrait vs landscape from real video dimensions
+  const handleMetadata = () => {
+    const v = vRef.current;
+    if (!v) return;
+    const isPortrait = v.videoHeight > v.videoWidth;
+    setAspectRatio(isPortrait ? '9/16' : '16/9');
+    setLoaded(true);
+  };
 
   useEffect(() => {
     const v = vRef.current;
@@ -131,25 +132,21 @@ function MP4Card({ project, accent, index, onSelect }: { project: Project; accen
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Header */}
-      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div>
-          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
-          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
-        </div>
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </div>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+        <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
       </div>
 
-      {/* Video area */}
-      <div className="relative" style={{ aspectRatio: '16/9', background: `linear-gradient(135deg,${accent}25,${accent}08)` }}>
-        <video ref={vRef} src={blobUrl || undefined} loop playsInline muted preload="metadata" className="absolute inset-0 w-full h-full object-cover"
+      {/* Video area — aspect ratio adapts to actual video orientation */}
+      <div className="relative overflow-hidden" style={{ aspectRatio, background: `linear-gradient(135deg,${accent}25,${accent}08)` }}>
+        <video
+          ref={vRef}
+          src={blobUrl || undefined}
+          loop playsInline muted
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.4s' }}
-          onLoadedData={() => setLoaded(true)}
+          onLoadedMetadata={handleMetadata}
         />
         {(isLoading || !loaded) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
@@ -183,18 +180,9 @@ function DriveCard({ project, accent, index, onSelect }: { project: Project; acc
       whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.15)' }}
     >
       {/* Header */}
-      <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div>
-          <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
-          <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
-        </div>
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 group-hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </div>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-[9px] uppercase tracking-widest font-semibold block mb-0.5" style={{ color: accent }}>{project.category}</span>
+        <h4 className="text-sm font-semibold text-white/90">{project.title}</h4>
       </div>
 
       {/* Video area — direct thumbnail with custom play icon */}
@@ -249,7 +237,8 @@ function Section({ title, subtitle, projects, accentColor, onSelect }: { title: 
         </div>
         <p className="text-sm ml-4" style={{ color: '#86868b' }}>{subtitle}</p>
       </motion.div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* items-start prevents landscape cards from stretching to match portrait card heights */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
         {projects.map((p, i) => <VideoCard key={p.id} project={p} index={i} onSelect={onSelect} />)}
       </div>
     </div>
@@ -293,7 +282,7 @@ export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; o
                 <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-1" style={{ color: '#f5f5f7' }}>
                   All <span className="shimmer-text">Projects</span>
                 </h2>
-                <p className="text-sm" style={{ color: '#86868b' }}>24 projects across 2 disciplines</p>
+                <p className="text-sm" style={{ color: '#86868b' }}>35 projects across 2 disciplines</p>
               </div>
               <motion.button onClick={onClose}
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
@@ -330,7 +319,7 @@ export default function ProjectGallery({ isOpen, onClose }: { isOpen: boolean; o
               )}
               {tab === 'editing' && (
                 <motion.div key="editing" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
-                  <Section title="Video Editing" subtitle="12 cinematic & editorial projects" projects={editingProjects} accentColor="#2997ff" onSelect={setSelectedProject} />
+                  <Section title="Video Editing" subtitle="23 cinematic & editorial projects" projects={editingProjects} accentColor="#2997ff" onSelect={setSelectedProject} />
                 </motion.div>
               )}
             </AnimatePresence>

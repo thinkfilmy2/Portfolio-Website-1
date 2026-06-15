@@ -2,21 +2,9 @@ import { motion, useInView, Variants } from 'framer-motion';
 import { useRef } from 'react';
 
 const footerLinks = {
-  Navigate: [
-    { label: 'Home', href: '#' },
-    { label: 'Case Study', href: '#work' },
-    { label: 'About Us', href: '#about' },
-    { label: 'Blog', href: '#' },
-    { label: 'Testimonials', href: '#testimonials' },
-    { label: 'FAQ', href: '#' },
-  ],
   Connect: [
     { label: 'Instagram', href: 'https://www.instagram.com/motionmonck/' },
     { label: 'Email', href: 'mailto:upananadadebnath@gmail.com?subject=Project%20Inquiry' },
-  ],
-  Legal: [
-    { label: 'Terms & Conditions', href: '#' },
-    { label: 'Privacy Policy', href: '#' },
   ],
 };
 
@@ -105,7 +93,7 @@ export default function Footer() {
           </motion.div>
         </motion.div>
         <motion.div variants={containerVariants} initial="hidden"
-          animate={inView ? 'visible' : 'hidden'} className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 mb-10 md:mb-16">
+          animate={inView ? 'visible' : 'hidden'} className="grid grid-cols-1 gap-8 mb-10 md:mb-16">
           {(Object.entries(footerLinks) as [string, { label: string; href: string }[]][]).map(([section, links]) => (
             <motion.div key={section} variants={columnVariants}>
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-5"

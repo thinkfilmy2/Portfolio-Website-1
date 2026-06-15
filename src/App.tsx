@@ -6,7 +6,6 @@ import Showcase from './components/Showcase';
 import Services from './components/Services';
 import About from './components/About';
 import Process from './components/Process';
-import Testimonials from './components/Testimonials';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 import FloatingNav from './components/FloatingNav';
@@ -349,7 +348,6 @@ function App() {
             <Services />
             <About />
             <Process />
-            <Testimonials />
             <CTA />
             <Footer />
           </motion.main>
