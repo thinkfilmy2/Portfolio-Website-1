@@ -11,6 +11,7 @@ export interface Project {
   client: string;
   industry: string;
   type: string;
+  thumbnail?: string; // custom thumbnail: uploaded path, data URL, or Google Drive image link
 }
 
 export interface Service {

@@ -9,6 +9,7 @@ export interface Project {
   client: string;
   industry: string;
   type: string;
+  thumbnail?: string;
 }
 
 export const motionProjectsData: Project[] = [

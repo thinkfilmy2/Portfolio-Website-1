@@ -206,8 +206,16 @@ function VideoCard({
           style={{ background: (project as any).gradient || `linear-gradient(135deg, ${project.accent}80 0%, ${project.accent}20 100%)`, opacity: videoLoaded ? 0.3 : 0.7, transition: 'opacity 0.6s ease' }}
         />
 
-        {/* Video */}
-        {isYouTubeUrl(project.video) ? (
+        {/* Video / Custom Thumbnail */}
+        {(project as any).thumbnail ? (
+          <img
+            src={(project as any).thumbnail}
+            alt={project.title}
+            className="absolute inset-0 w-full h-full object-cover z-[1]"
+            style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}
+            onLoad={() => setVideoLoaded(true)}
+          />
+        ) : isYouTubeUrl(project.video) ? (
           <div
             className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"
             style={{ opacity: videoLoaded ? 1 : 0, transition: 'opacity 0.6s ease' }}

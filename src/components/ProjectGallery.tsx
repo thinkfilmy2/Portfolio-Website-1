@@ -189,7 +189,7 @@ function DriveCard({ project, accent, index, onSelect }: { project: Project; acc
       {/* Video area — direct thumbnail with custom play icon */}
       <div className="relative" style={{ aspectRatio: '16/9', background: '#000', overflow: 'hidden' }}>
         <img
-          src={getDriveThumbnailUrl(project.video)}
+          src={(project as any).thumbnail || getDriveThumbnailUrl(project.video)}
           alt={project.title}
           className="absolute inset-0 w-full h-full object-cover"
         />

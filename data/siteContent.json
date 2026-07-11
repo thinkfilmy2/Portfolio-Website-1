@@ -7,64 +7,43 @@
   "projects": {
     "motion": [
       {
-        "id": "m1",
-        "title": "Brandstorm Sphere",
-        "category": "Brand Film",
-        "video": "https://drive.google.com/file/d/1OLysUCdGGQk0nBWDzeH1vbKIF-hDYEwS/preview",
-        "accent": "#8b5cf6",
-        "summary": "A dynamic 3D motion graphics loop featuring a glowing, rotating spherical notification badge designed for a creative branding film.",
+        "id": "p_mrgv93qsb5vz",
+        "title": "Radic",
+        "category": "Technology / AI Marketing Software",
+        "video": "https://drive.google.com/file/d/1rX2rWLmQEnSxIRD63fu21CX0Ux0mS_xo/view?usp=sharing",
+        "accent": "#f75f85",
+        "summary": "The video introduces Radic, a context-aware ad creative platform designed to understand a specific brand and its target audience better than generic AI tools. It highlights the platform's \"ThinkBox\" capability, which fetches brand data and learns from six different sources at once—including audience personas, competitors, ad libraries, websites, forums, and the open web—to automatically generate tailored marketing assets in various aspect ratios and track cross-channel performance.",
         "team": "Upananda",
-        "client": "Brandstorm",
-        "industry": "Branding / Design Education",
-        "type": "3D Motion Graphics / Brand Film"
+        "client": "Radic",
+        "industry": "Ad-Tech / B2B SaaS / Artificial Intelligence",
+        "type": "Product Explainer Video",
+        "thumbnail": "/images/uploads/1783804722526-SCR-20260712-dhvn.png"
       },
       {
-        "id": "m2",
-        "title": "ElevenLabs UI",
-        "category": "Product Demo",
-        "video": "https://drive.google.com/file/d/1vCWGnahFi8XjGPL9ADDv-RfI9054FM4O/preview",
-        "accent": "#2997ff",
-        "summary": "A sleek UI concept video demonstrating an AI sound generation platform, showcasing features like custom prompts, looping options, and seamless audio waveforms.",
+        "id": "p_mrgv4poigb9d",
+        "title": "GenPage",
+        "category": "Technology / Sales & Marketing Software",
+        "video": "https://drive.google.com/file/d/12u-tUaL1oaN65yOYgJUWHbZmUtGQJMsZ/view?usp=sharing",
+        "accent": "#5ff7a1",
+        "summary": "The video explains how traditional, generic cold outreach is failing and introduces GenPage as the solution. GenPage is a platform that allows users to instantly generate personalized landing pages, slide decks, and media for individual leads. By tailoring content and making outreach feel more human, the tool helps businesses achieve a higher reply rate and book more meetings.",
         "team": "Upananda",
-        "client": "ElevenLabs",
-        "industry": "Artificial Intelligence / Audio Tech",
-        "type": "UI/UX Motion Graphics / Product Demo Film"
+        "client": "GenPage",
+        "industry": "B2B SaaS / Sales Technology",
+        "type": "Product Explainer / Promotional Video",
+        "thumbnail": "/images/uploads/1783804515301-SCR-20260712-dgpn.jpeg"
       },
       {
-        "id": "m3",
-        "title": "DataScale Promo",
-        "category": "B2B Corporate",
-        "video": "https://drive.google.com/file/d/1L0B_h8QDUBI0DkKazQwqNqyVE7qTixZ6/preview",
-        "accent": "#ec4899",
-        "summary": "A sleek, futuristic corporate promo video featuring glowing glassmorphism elements, dynamic abstract shapes, and data charts to showcase AI-driven business scaling.",
+        "id": "p_mrguu4l4vdks",
+        "title": "FYNITE OS",
+        "category": "Technology / AI Software",
+        "video": "https://drive.google.com/file/d/1dFRskIVJoQ6sdvbj7eLuP8w-LLjQEsZB/view?usp=sharing",
+        "accent": "#f75fea",
+        "summary": "The video introduces FYNITE OS, an AI-powered platform designed to connect data across hundreds of business systems. It uses artificial intelligence to scan data, automatically discover and fix inefficiencies, and allows businesses to design and deploy autonomous, self-healing workflows. The primary promise is delivering measurable ROI in weeks rather than months.",
         "team": "Upananda",
-        "client": "DataScale AI",
-        "industry": "Artificial Intelligence / Business SaaS",
-        "type": "B2B Corporate Promo / Motion Graphics Explainers"
-      },
-      {
-        "id": "m4",
-        "title": "AI SaaS Poster",
-        "category": "Product Launch",
-        "video": "https://drive.google.com/file/d/1Cksg376HakXM91E9prZsg9rdtEDXxE8M/preview",
-        "accent": "#a855f7",
-        "summary": "An elegant typography and abstract 3D shape motion poster introducing a next-generation AI SaaS platform with smooth glassmorphism layers and deep purple aesthetics.",
-        "team": "Upananda",
-        "client": "Upananda",
-        "industry": "Tech / AI SaaS",
-        "type": "Product Launch Promo / Kinetic Typography Motion Graphics"
-      },
-      {
-        "id": "m5",
-        "title": "Agency Reel",
-        "category": "Agency Showreel",
-        "video": "https://drive.google.com/file/d/1Kbihm9IaAPmlLPYcKu8P4sXhZuWWnrqI/preview",
-        "accent": "#f43f5e",
-        "summary": "A fast-paced, energetic agency reel combining kinetic typography, corporate case studies, and vibrant graphic elements to invite creative designers to collaborate.",
-        "team": "Upananda",
-        "client": "Brandstorm",
-        "industry": "Design Agency / Creative Branding",
-        "type": "Agency Showreel / Instagram Reel / Recruitment Promo"
+        "client": "FYNITE",
+        "industry": "Enterprise Software / Artificial Intelligence / Business Automation",
+        "type": "Product Promo / Explainer Video",
+        "thumbnail": "/images/uploads/1783804292676-SCR-20260712-dfhj.jpeg"
       },
       {
         "id": "m6",
@@ -79,16 +58,17 @@
         "type": "Product Explainer / UI Motion Graphics Promo"
       },
       {
-        "id": "m7",
-        "title": "Prefr Walkthrough",
-        "category": "Performance Ad",
-        "video": "https://drive.google.com/file/d/1P5uovjIivZ9ik-Gfmukb0LLNr0dQS9D7/preview",
-        "accent": "#3b82f6",
-        "summary": "A clean mobile UI walkthrough advertisement demonstrating a quick and easy online loan application process with instant OTP verification.",
+        "id": "m2",
+        "title": "ElevenLabs UI",
+        "category": "Product Demo",
+        "video": "https://drive.google.com/file/d/1vCWGnahFi8XjGPL9ADDv-RfI9054FM4O/preview",
+        "accent": "#2997ff",
+        "summary": "A sleek UI concept video demonstrating an AI sound generation platform, showcasing features like custom prompts, looping options, and seamless audio waveforms.",
         "team": "Upananda",
-        "client": "Prefr",
-        "industry": "FinTech / Financial Services",
-        "type": "Performance Ad / Mobile App UI Explainer"
+        "client": "ElevenLabs",
+        "industry": "Artificial Intelligence / Audio Tech",
+        "type": "UI/UX Motion Graphics / Product Demo Film",
+        "thumbnail": "/images/uploads/1783804854250-SCR-20260712-dipe.jpeg"
       },
       {
         "id": "m8",
@@ -101,6 +81,55 @@
         "client": "ClickUp",
         "industry": "Project Management / SaaS Tech",
         "type": "Dynamic SaaS Explainer / 2D Motion Graphics Promo"
+      },
+      {
+        "id": "m4",
+        "title": "AI SaaS Poster",
+        "category": "Product Launch",
+        "video": "https://drive.google.com/file/d/1Cksg376HakXM91E9prZsg9rdtEDXxE8M/preview",
+        "accent": "#a855f7",
+        "summary": "An elegant typography and abstract 3D shape motion poster introducing a next-generation AI SaaS platform with smooth glassmorphism layers and deep purple aesthetics.",
+        "team": "Upananda",
+        "client": "Upananda",
+        "industry": "Tech / AI SaaS",
+        "type": "Product Launch Promo / Kinetic Typography Motion Graphics"
+      },
+      {
+        "id": "m1",
+        "title": "Brandstorm Sphere",
+        "category": "Brand Film",
+        "video": "https://drive.google.com/file/d/1OLysUCdGGQk0nBWDzeH1vbKIF-hDYEwS/preview",
+        "accent": "#8b5cf6",
+        "summary": "A dynamic 3D motion graphics loop featuring a glowing, rotating spherical notification badge designed for a creative branding film.",
+        "team": "Upananda",
+        "client": "Brandstorm",
+        "industry": "Branding / Design Education",
+        "type": "3D Motion Graphics / Brand Film",
+        "thumbnail": "/images/uploads/1783805057514-SCR-20260712-djup.png"
+      },
+      {
+        "id": "m5",
+        "title": "Agency Reel",
+        "category": "Agency Showreel",
+        "video": "https://drive.google.com/file/d/1Kbihm9IaAPmlLPYcKu8P4sXhZuWWnrqI/preview",
+        "accent": "#f43f5e",
+        "summary": "A fast-paced, energetic agency reel combining kinetic typography, corporate case studies, and vibrant graphic elements to invite creative designers to collaborate.",
+        "team": "Upananda",
+        "client": "Brandstorm",
+        "industry": "Design Agency / Creative Branding",
+        "type": "Agency Showreel / Instagram Reel / Recruitment Promo"
+      },
+      {
+        "id": "m7",
+        "title": "Prefr Walkthrough",
+        "category": "Performance Ad",
+        "video": "https://drive.google.com/file/d/1P5uovjIivZ9ik-Gfmukb0LLNr0dQS9D7/preview",
+        "accent": "#3b82f6",
+        "summary": "A clean mobile UI walkthrough advertisement demonstrating a quick and easy online loan application process with instant OTP verification.",
+        "team": "Upananda",
+        "client": "Prefr",
+        "industry": "FinTech / Financial Services",
+        "type": "Performance Ad / Mobile App UI Explainer"
       },
       {
         "id": "m9",
@@ -137,18 +166,6 @@
         "client": "Brandstorm",
         "industry": "UI/UX Design / Tech SaaS",
         "type": "UI/UX Micro-interaction / 3D Motion Graphics Explainer"
-      },
-      {
-        "id": "m12",
-        "title": "Fluid Shapes",
-        "category": "Abstract Motion",
-        "video": "https://cdn.pixabay.com/video/2021/02/11/64608-511682498_large.mp4",
-        "accent": "#ec4899",
-        "summary": "A visual exploration of abstract fluid dynamics and lighting in 3D.",
-        "team": "Upananda",
-        "client": "Personal Project",
-        "industry": "Digital Art",
-        "type": "Experimental Motion"
       }
     ],
     "editing": []
