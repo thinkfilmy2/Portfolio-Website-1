@@ -10,6 +10,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load .env (Node >= 20.12). Existing env vars win.
+try {
+  process.loadEnvFile(path.join(__dirname, '.env'));
+} catch {
+  // no .env file: fall through to defaults below
+}
+
 const app = express();
 const PORT = 3001;
 
@@ -17,6 +24,9 @@ const PORT = 3001;
 // Change this by setting ADMIN_PASSWORD_HASH in .env
 const DEFAULT_HASH = bcrypt.hashSync('admin123', 10);
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || DEFAULT_HASH;
+if (!process.env.ADMIN_PASSWORD_HASH) {
+  console.warn('\n  ⚠️  WARNING: ADMIN_PASSWORD_HASH is not set. The admin password is the default "admin123". Set it in .env!\n');
+}
 const SESSION_SECRET = process.env.SESSION_SECRET || 'portfolio-admin-secret-key-change-me';
 
 // ─── Middleware ───
@@ -32,6 +42,7 @@ app.use(session({
   cookie: {
     secure: false, // Set to true in production with HTTPS
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 }));
@@ -57,7 +68,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|svg|mp4|webm|mov)$/i;
+    const allowed = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i;
     if (allowed.test(path.extname(file.originalname))) {
       cb(null, true);
     } else {
@@ -75,17 +86,22 @@ function requireAuth(req, res, next) {
 }
 
 // ─── Helper: read/write JSON ───
+// Returns null when the file is missing or unparsable, so callers never overwrite it with partial data.
 function readContent() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     return JSON.parse(raw);
-  } catch {
-    return {};
+  } catch (err) {
+    console.error('Failed to read content file:', err.message);
+    return null;
   }
 }
 
+// Atomic write: a crash mid-write cannot leave a truncated DATA_FILE.
 function writeContent(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  const tmp = `${DATA_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(tmp, DATA_FILE);
 }
 
 // ─── AUTH ROUTES ───
@@ -114,6 +130,7 @@ app.get('/api/auth/check', (req, res) => {
 // Public: anyone can read content (frontend needs this)
 app.get('/api/content', (req, res) => {
   const content = readContent();
+  if (!content) return res.status(500).json({ error: 'Content file unreadable' });
   res.json(content);
 });
 
@@ -121,6 +138,7 @@ app.get('/api/content', (req, res) => {
 app.put('/api/content/:section', requireAuth, (req, res) => {
   const { section } = req.params;
   const content = readContent();
+  if (!content) return res.status(500).json({ error: 'Content file unreadable; not saved' });
   content[section] = req.body;
   writeContent(content);
   res.json({ success: true, section });
@@ -128,11 +146,16 @@ app.put('/api/content/:section', requireAuth, (req, res) => {
 
 // Protected: update entire content
 app.put('/api/content', requireAuth, (req, res) => {
+  if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || !Object.keys(req.body).length) {
+    return res.status(400).json({ error: 'Invalid content' });
+  }
   writeContent(req.body);
   res.json({ success: true });
 });
 
 // ─── UPLOAD ROUTES ───
+app.use('/images/uploads', express.static(UPLOAD_DIR));
+
 app.post('/api/upload', requireAuth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const filePath = `/images/uploads/${req.file.filename}`;
@@ -146,7 +169,12 @@ app.post('/api/upload', requireAuth, upload.single('file'), (req, res) => {
 });
 
 app.delete('/api/upload/:filename', requireAuth, (req, res) => {
-  const filePath = path.join(UPLOAD_DIR, req.params.filename);
+  const name = path.basename(req.params.filename);
+  // Reject traversal ("../x"), "." / "..", and dotfiles.
+  if (name !== req.params.filename || name.startsWith('.')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  const filePath = path.join(UPLOAD_DIR, name);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
     return res.json({ success: true });
@@ -189,8 +217,8 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
 });
 
 // ─── Start server ───
-app.listen(PORT, () => {
-  console.log(`\n  🚀 Admin API running at http://localhost:${PORT}`);
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`\n  🚀 Admin API running at http://127.0.0.1:${PORT}`);
   console.log(`  📁 Data file: ${DATA_FILE}`);
   console.log(`  📷 Uploads dir: ${UPLOAD_DIR}\n`);
 });

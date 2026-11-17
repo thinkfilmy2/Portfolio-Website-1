@@ -3,11 +3,11 @@ import type { Service } from '../../types/siteContent';
 import { adminApi } from '../api';
 import Toast from '../components/Toast';
 
+// Must match SERVICE_ICONS in src/components/Services.tsx (unknown names render as Box).
 const ICON_OPTIONS = [
   'Box', 'Film', 'Sparkles', 'Headphones', 'Clapperboard',
   'MousePointer2', 'Compass', 'Palette', 'Pointer', 'Cuboid',
-  'Fingerprint', 'Zap', 'Camera', 'Music', 'Pen', 'Globe',
-  'Layers', 'Monitor', 'Smartphone', 'Star',
+  'Fingerprint',
 ];
 
 interface ServicesEditorProps {

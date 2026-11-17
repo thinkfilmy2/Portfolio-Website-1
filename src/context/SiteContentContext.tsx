@@ -41,7 +41,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchContent();
+    // Only the local dev setup has the admin API; live visitors use the bundled JSON.
+    if (import.meta.env.DEV) fetchContent();
   }, []);
 
   return (

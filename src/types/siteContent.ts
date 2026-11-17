@@ -129,6 +129,7 @@ export interface SiteContent {
   projects: {
     motion: Project[];
     editing: Project[];
+    ai: Project[];
   };
   services: Service[];
   about: AboutContent;

@@ -20,6 +20,12 @@ export default function DashboardPage({ content, onNavigate }: DashboardPageProp
       page: 'projects',
     },
     {
+      label: 'AI Projects',
+      value: content.projects?.ai?.length || 0,
+      color: '#22c55e',
+      page: 'projects',
+    },
+    {
       label: 'Services',
       value: content.services?.length || 0,
       color: '#a78bfa',

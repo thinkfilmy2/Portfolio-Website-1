@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { Fragment, useRef } from 'react';
 import { motion, useScroll, useTransform, Variants } from 'framer-motion';
 import { useSiteContent } from '../context/SiteContentContext';
 
@@ -74,8 +74,9 @@ export default function Hero() {
             style={{ color: '#f5f5f7', gap: '0 0.25em', lineHeight: 1.1, y: headlineY }}
           >
             {headlineWords.map((word, i) => (
+              <Fragment key={i}>
+              {i > 0 && ' '}
               <motion.span
-                key={i}
                 custom={i}
                 variants={wordAnimation}
                 initial="hidden"
@@ -89,6 +90,7 @@ export default function Hero() {
               >
                 {word}
               </motion.span>
+              </Fragment>
             ))}
           </motion.h1>
 

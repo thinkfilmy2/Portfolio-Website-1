@@ -1,16 +1,22 @@
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-import { ArrowRight, X } from 'lucide-react';
+import {
+  ArrowRight, X, Box, Film, Sparkles, Headphones, Clapperboard, MousePointer2,
+  Compass, Palette, Pointer, Cuboid, Fingerprint, type LucideIcon,
+} from 'lucide-react';
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { useSiteContent } from '../context/SiteContentContext';
 import type { Service } from '../types/siteContent';
 
+/* Only the icons the services use, so the bundle does not include the whole Lucide set.
+   Keep in sync with ICON_OPTIONS in src/admin/pages/ServicesEditor.tsx. */
+const SERVICE_ICONS: Record<string, LucideIcon> = {
+  Box, Film, Sparkles, Headphones, Clapperboard, MousePointer2,
+  Compass, Palette, Pointer, Cuboid, Fingerprint,
+};
+
 function getIconComponent(iconName: string) {
-  const IconComponent = (LucideIcons as any)[iconName];
-  if (IconComponent) {
-    return <IconComponent className="w-6 h-6" />;
-  }
-  return <LucideIcons.Box className="w-6 h-6" />; // fallback
+  const IconComponent = SERVICE_ICONS[iconName] || Box;
+  return <IconComponent className="w-6 h-6" />;
 }
 
 /* ─── Premium 3D Tilt Card with cursor-tracking glow ─── */
@@ -271,6 +277,7 @@ function SkillsPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
               {/* Close button */}
               <motion.button
                 onClick={onClose}
+                aria-label="Close"
                 className="w-10 h-10 rounded-full flex items-center justify-center border border-white/[0.08] cursor-pointer"
                 style={{
                   background: 'rgba(255,255,255,0.04)',

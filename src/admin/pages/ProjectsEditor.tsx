@@ -7,6 +7,7 @@ import ThumbnailPicker from '../components/ThumbnailPicker';
 interface ProjectsEditorProps {
   motion: Project[];
   editing: Project[];
+  ai: Project[];
   onSave: () => void;
 }
 
@@ -20,10 +21,11 @@ const emptyProject: Project = {
   thumbnail: '',
 };
 
-export default function ProjectsEditor({ motion: motionProp, editing: editingProp, onSave }: ProjectsEditorProps) {
-  const [tab, setTab] = useState<'motion' | 'editing'>('motion');
+export default function ProjectsEditor({ motion: motionProp, editing: editingProp, ai: aiProp, onSave }: ProjectsEditorProps) {
+  const [tab, setTab] = useState<'motion' | 'editing' | 'ai'>('motion');
   const [motionList, setMotionList] = useState<Project[]>([...motionProp]);
   const [editingList, setEditingList] = useState<Project[]>([...editingProp]);
+  const [aiList, setAiList] = useState<Project[]>([...aiProp]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,8 +36,10 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragNodeRef = useRef<HTMLDivElement | null>(null);
 
-  const currentList = tab === 'motion' ? motionList : editingList;
-  const setCurrentList = tab === 'motion' ? setMotionList : setEditingList;
+  const lists = { motion: motionList, editing: editingList, ai: aiList };
+  const setters = { motion: setMotionList, editing: setEditingList, ai: setAiList };
+  const currentList = lists[tab];
+  const setCurrentList = setters[tab];
 
   const handleAdd = () => {
     setEditingProject({ ...emptyProject, id: genId() });
@@ -65,7 +69,7 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
   const handleSaveAll = async () => {
     setSaving(true);
     try {
-      await adminApi.updateSection('projects', { motion: motionList, editing: editingList });
+      await adminApi.updateSection('projects', { motion: motionList, editing: editingList, ai: aiList });
       setToast({ msg: 'Projects saved! Order updated.', type: 'success' });
       onSave();
     } catch (err: any) {
@@ -150,7 +154,7 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Projects</h2>
           <p style={{ fontSize: 13, color: '#86868b', margin: '4px 0 0' }}>
-            {motionList.length} motion · {editingList.length} editing projects
+            {motionList.length} motion · {editingList.length} editing · {aiList.length} AI projects
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -173,14 +177,14 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
-        {(['motion', 'editing'] as const).map(t => (
+        {(['motion', 'editing', 'ai'] as const).map(t => (
           <button
             key={t}
             className={`admin-btn admin-btn-sm ${tab === t ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
             onClick={() => setTab(t)}
             style={{ textTransform: 'capitalize' }}
           >
-            {t} ({t === 'motion' ? motionList.length : editingList.length})
+            {t === 'ai' ? 'AI' : t} ({lists[t].length})
           </button>
         ))}
       </div>
@@ -189,7 +193,7 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
       <div className="admin-item-list">
         {currentList.length === 0 && (
           <div className="admin-empty">
-            <p>No {tab} projects yet. Click "Add Project" to create one.</p>
+            <p>No {tab === 'ai' ? 'AI' : tab} projects yet. Click "Add Project" to create one.</p>
           </div>
         )}
         {currentList.map((p, index) => (

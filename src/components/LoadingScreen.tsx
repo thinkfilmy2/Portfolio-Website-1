@@ -17,7 +17,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const nameLetters = (loading.name || "UPANANDA DEBNATH").split('');
 
   useEffect(() => {
-    const duration = 2500;
+    const duration = 1000;
     const interval = 20;
     let current = 0;
 
@@ -26,7 +26,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       if (current >= 100) {
         setProgress(100);
         clearInterval(timer);
-        setTimeout(onComplete, 800);
+        setTimeout(onComplete, 200);
       } else {
         setProgress(Math.floor(current));
       }
@@ -40,7 +40,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       className="fixed inset-0 z-[10000] flex flex-col items-center justify-center"
       style={{ background: '#000000' }}
       exit={{ opacity: 0, scale: 1.03 }}
-      transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+      transition={{ duration: 0.3, ease: [0.76, 0, 0.24, 1] }}
     >
       {/* Subtle background glow */}
       <div
@@ -61,7 +61,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
             animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
             transition={{
               duration: 0.5,
-              delay: 0.3 + i * 0.04,
+              delay: 0.05 + i * 0.02,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
@@ -76,7 +76,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         style={{ color: '#86868b' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.7 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
       >
         {loading.subtitle}
       </motion.p>
@@ -87,14 +87,14 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           <motion.span
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.5 }}
+            transition={{ delay: 0.3 }}
           >
             Loading
           </motion.span>
           <motion.span
             initial={{ opacity: 0, x: 8 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.5 }}
+            transition={{ delay: 0.3 }}
           >
             {progress}%
           </motion.span>

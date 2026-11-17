@@ -1,6 +1,6 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { useCallback } from 'react';
+import { Fragment, useCallback } from 'react';
 import { useSiteContent } from '../context/SiteContentContext';
 
 export default function CTA() {
@@ -55,8 +55,9 @@ export default function CTA() {
         */}
         <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight text-balance mb-8 md:mb-12 flex flex-wrap justify-center gap-x-[0.3em] gap-y-2 md:gap-y-3">
           {headlineWords.map((word, wIdx) => (
+            <Fragment key={wIdx}>
+            {wIdx > 0 && ' '}
             <motion.span
-              key={wIdx}
               className="inline-block"
               style={{ color: '#f5f5f7', perspective: 800 }}
               initial={{ opacity: 0, y: 50, rotateX: 80, filter: 'blur(6px)' }}
@@ -75,6 +76,7 @@ export default function CTA() {
             >
               {word}
             </motion.span>
+            </Fragment>
           ))}
         </h2>
 

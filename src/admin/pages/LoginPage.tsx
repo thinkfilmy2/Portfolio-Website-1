@@ -64,9 +64,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </button>
           {error && <div className="admin-login-error">{error}</div>}
         </form>
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 20 }}>
-          Default password: admin123
-        </p>
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ interface Props {
   client: string;
   industry: string;
   type: string;
-  onShowGallery: () => void;
+  onShowGallery?: () => void;
 }
 
 /* ── Load YouTube API once ── */
@@ -284,7 +284,7 @@ export default function VideoPlayerModal(props: Props) {
   /* ── Controls bar (shared for YT) ── */
   const YTControlsBar = () => (
     <div className="px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(8,8,10,0.95)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-      <motion.button onClick={ytTogglePlay}
+      <motion.button onClick={ytTogglePlay} aria-label={ytPlaying ? 'Pause' : 'Play'}
         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer"
         style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
         whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -297,7 +297,7 @@ export default function VideoPlayerModal(props: Props) {
         <div className="h-full rounded-full" style={{ width: ytDuration ? `${(ytProgress / ytDuration) * 100}%` : '0%', background: `linear-gradient(90deg, ${accent}, ${accent}99)` }} />
       </div>
       <span className="text-[10px] font-mono flex-shrink-0" style={{ color: '#86868b' }}>{fmt(ytDuration)}</span>
-      <motion.button onClick={ytToggleMute}
+      <motion.button onClick={ytToggleMute} aria-label={ytMuted ? 'Unmute' : 'Mute'}
         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer"
         style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
         whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -308,6 +308,14 @@ export default function VideoPlayerModal(props: Props) {
     </div>
   );
 
+  /* ── Close on Escape ── */
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   /* ── Modal width: narrow for portrait, normal for landscape ── */
   const modalMaxWidth = isPortrait ? '420px' : '820px';
 
@@ -316,6 +324,7 @@ export default function VideoPlayerModal(props: Props) {
       {isOpen && (
         <motion.div
           className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6"
+          role="dialog" aria-modal="true" aria-label={title || 'Video player'}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
@@ -328,7 +337,7 @@ export default function VideoPlayerModal(props: Props) {
           />
 
           {/* Close button */}
-          <motion.button onClick={onClose}
+          <motion.button onClick={onClose} aria-label="Close video"
             className="fixed top-4 right-4 md:top-6 md:right-6 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer z-[10020]"
             style={{ background: 'rgba(30,30,36,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.12)', color: '#f5f5f7' }}
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
@@ -485,7 +494,7 @@ export default function VideoPlayerModal(props: Props) {
                             {/* Left: play, time, volume */}
                             <div className="flex items-center gap-3">
                               {/* Play/Pause */}
-                              <motion.button onClick={togglePlay}
+                              <motion.button onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'}
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-white cursor-pointer"
                                 style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}
                                 whileHover={{ scale: 1.1, background: 'rgba(255,255,255,0.2)' }} whileTap={{ scale: 0.9 }}>
@@ -501,7 +510,7 @@ export default function VideoPlayerModal(props: Props) {
 
                               {/* Volume */}
                               <div className="flex items-center gap-2 group/vol">
-                                <motion.button onClick={toggleMute}
+                                <motion.button onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}
                                   className="w-8 h-8 rounded-full flex items-center justify-center text-white cursor-pointer"
                                   style={{ background: 'rgba(255,255,255,0.08)' }}
                                   whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -525,7 +534,7 @@ export default function VideoPlayerModal(props: Props) {
                             </div>
 
                             {/* Right: fullscreen */}
-                            <motion.button onClick={toggleFullscreen}
+                            <motion.button onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                               className="w-8 h-8 rounded-full flex items-center justify-center text-white cursor-pointer"
                               style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
                               whileHover={{ scale: 1.1, background: 'rgba(255,255,255,0.16)' }} whileTap={{ scale: 0.9 }}>

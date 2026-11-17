@@ -52,15 +52,22 @@ export default function FloatingNav() {
     };
   }, [isOpen]);
 
-  /* Close on outside click */
+  /* Close on outside click or Escape */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (isOpen && panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, [isOpen]);
 
   const handleNavClick = (href: string) => {
@@ -115,6 +122,8 @@ export default function FloatingNav() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={isOpen}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}

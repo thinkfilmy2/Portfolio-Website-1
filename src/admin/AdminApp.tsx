@@ -81,6 +81,7 @@ export default function AdminApp() {
           <ProjectsEditor
             motion={content.projects?.motion || []}
             editing={content.projects?.editing || []}
+            ai={content.projects?.ai || []}
             onSave={refetch}
           />
         );

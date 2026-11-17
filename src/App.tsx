@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { AnimatePresence, motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { AnimatePresence, MotionConfig, motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SiteContentProvider, useSiteContent } from './context/SiteContentContext';
-import AdminApp from './admin/AdminApp';
+const AdminApp = lazy(() => import('./admin/AdminApp'));
 import LoadingScreen from './components/LoadingScreen';
 import Hero from './components/Hero';
 import Showcase from './components/Showcase';
@@ -215,7 +215,7 @@ function ScrollAwareNav() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 2.8 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="font-semibold text-sm md:text-lg tracking-tight cursor-default"
           style={{ color: '#f5f5f7', x: logoSpringX, y: logoSpringY }}
           onMouseMove={handleLogoMouseMove}
@@ -234,7 +234,7 @@ function ScrollAwareNav() {
             style={{ color: '#86868b' }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 2.8 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             whileHover={{ color: '#f5f5f7' }}
           >
             {email}
@@ -246,7 +246,7 @@ function ScrollAwareNav() {
             style={{ background: 'rgba(255,255,255,0.1)' }}
             initial={{ scaleY: 0 }}
             animate={{ scaleY: 1 }}
-            transition={{ duration: 0.4, delay: 3.2 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
           />
 
           {/* Social Icons */}
@@ -264,7 +264,7 @@ function ScrollAwareNav() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
                   duration: 0.5,
-                  delay: 3 + i * 0.08,
+                  delay: 0.3 + i * 0.04,
                   ease: [0.22, 1, 0.36, 1],
                   type: 'spring',
                   stiffness: 300,
@@ -292,6 +292,16 @@ function PortfolioLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const mainRef = useRef<HTMLElement>(null);
   const content = useSiteContent();
+  // Stable reference: LoadingScreen's timer effect depends on it and would restart otherwise.
+  const handleLoadingComplete = useCallback(() => setIsLoading(false), []);
+
+  /* Keep <title> and meta description in sync with the admin SEO editor */
+  useEffect(() => {
+    if (content.seo?.title) document.title = content.seo.title;
+    if (content.seo?.description) {
+      document.querySelector('meta[name="description"]')?.setAttribute('content', content.seo.description);
+    }
+  }, [content.seo]);
   const settings = content.settings?.sectionsEnabled || {
     hero: true,
     showcase: true,
@@ -305,7 +315,7 @@ function PortfolioLayout() {
   return (
     <>
       <AnimatePresence mode="wait">
-        {isLoading && <LoadingScreen key="loading" onComplete={() => setIsLoading(false)} />}
+        {isLoading && <LoadingScreen key="loading" onComplete={handleLoadingComplete} />}
       </AnimatePresence>
 
       {!isLoading && (
@@ -345,14 +355,23 @@ function PortfolioLayout() {
 
 function App() {
   return (
-    <SiteContentProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/admin/*" element={<AdminApp />} />
-          <Route path="*" element={<PortfolioLayout />} />
-        </Routes>
-      </BrowserRouter>
-    </SiteContentProvider>
+    <MotionConfig reducedMotion="user">
+      <SiteContentProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/admin/*"
+              element={
+                <Suspense fallback={<div style={{ minHeight: '100vh', background: '#000' }} />}>
+                  <AdminApp />
+                </Suspense>
+              }
+            />
+            <Route path="*" element={<PortfolioLayout />} />
+          </Routes>
+        </BrowserRouter>
+      </SiteContentProvider>
+    </MotionConfig>
   );
 }
 

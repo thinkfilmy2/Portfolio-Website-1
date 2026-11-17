@@ -154,7 +154,7 @@ export default function About() {
       {/* ── Background Portrait ── */}
       <div className="about-photo-container">
         <motion.img
-          src={about.image ? (about.image.startsWith('http') || about.image.startsWith('/') ? about.image : `http://localhost:3001${about.image}`) : "/images/05.2.1.webp"}
+          src={about.image || "/images/05.2.1.webp"}
           alt={about.name || "Upananda Debnath"}
           className="about-photo-img"
           initial={{ opacity: 0, scale: 1.05 }}
