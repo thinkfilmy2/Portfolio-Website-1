@@ -12,6 +12,7 @@ export interface Project {
   industry: string;
   type: string;
   thumbnail?: string; // custom thumbnail: uploaded path, data URL, or Google Drive image link
+  orientation?: 'portrait' | 'landscape'; // sizes the Drive player (its iframe can't report video size)
 }
 
 export interface Service {

@@ -25,6 +25,9 @@ const SECTIONS = [
   { key: 'ai', label: 'AI', accent: '#22c55e' },
 ] as const;
 
+/* Cards shown per sub-section before "Show all" (3 full rows on desktop) */
+const PREVIEW_COUNT = 9;
+
 /* ── Grid card: image on top, text below, no autoplay ── */
 function ProjectCard({ project, onSelect }: { project: Project; onSelect: (p: Project) => void }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -46,7 +49,8 @@ function ProjectCard({ project, onSelect }: { project: Project; onSelect: (p: Pr
           <img
             src={src}
             alt=""
-            loading="lazy"
+            // eager: lazy images stayed blank in some viewers; only ~20 cards render until "Show all"
+            loading="eager"
             decoding="async"
             width={640}
             height={360}
@@ -75,6 +79,7 @@ function ProjectCard({ project, onSelect }: { project: Project; onSelect: (p: Pr
 /* ── Main Showcase Section ── */
 export default function Showcase() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const reduceMotion = useReducedMotion();
   const content = useSiteContent();
 
@@ -128,13 +133,27 @@ export default function Showcase() {
                   {s.items.length} {s.items.length === 1 ? 'project' : 'projects'}
                 </span>
               </motion.div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                {s.items.map((project, i) => (
+              <div id={`${s.key}-grid`} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                {(expanded[s.key] ? s.items : s.items.slice(0, PREVIEW_COUNT)).map((project, i) => (
                   <motion.div key={project.id} {...reveal((i % 3) * 0.06)}>
                     <ProjectCard project={project} onSelect={setSelectedProject} />
                   </motion.div>
                 ))}
               </div>
+              {s.items.length > PREVIEW_COUNT && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((e) => ({ ...e, [s.key]: !e[s.key] }))}
+                    aria-expanded={!!expanded[s.key]}
+                    aria-controls={`${s.key}-grid`}
+                    className="px-6 py-3 rounded-full text-sm font-semibold cursor-pointer outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#f5f5f7' }}
+                  >
+                    {expanded[s.key] ? 'Show less' : `Show all (${s.items.length})`}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -153,6 +172,7 @@ export default function Showcase() {
         client={selectedProject?.client || ''}
         industry={selectedProject?.industry || ''}
         type={selectedProject?.type || ''}
+        orientation={selectedProject?.orientation}
       />
     </section>
   );

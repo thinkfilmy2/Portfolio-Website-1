@@ -360,6 +360,15 @@ export default function ProjectsEditor({ motion: motionProp, editing: editingPro
             </div>
 
             <div className="admin-form-group">
+              <label className="admin-label">Orientation</label>
+              <select className="admin-select" value={editingProject.orientation || 'landscape'}
+                onChange={e => setEditingProject({ ...editingProject, orientation: e.target.value as 'portrait' | 'landscape' })}>
+                <option value="landscape">Landscape (16:9)</option>
+                <option value="portrait">Portrait (9:16)</option>
+              </select>
+            </div>
+
+            <div className="admin-form-group">
               <label className="admin-label">Accent Color</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div className="admin-color-swatch" style={{ background: editingProject.accent }}>

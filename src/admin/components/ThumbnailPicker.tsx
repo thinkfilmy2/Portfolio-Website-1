@@ -21,14 +21,6 @@ function getDriveThumbnailUrl(url: string): string {
   return url;
 }
 
-function getDriveStreamUrl(url: string): string {
-  const match = url.match(/(?:\/file\/d\/|\/d\/|id=)([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    return `https://drive.usercontent.google.com/download?id=${match[1]}`;
-  }
-  return url;
-}
-
 function isYouTubeUrl(url: string): boolean {
   return /(?:youtube\.com\/(?:shorts\/|watch\?v=)|youtu\.be\/)/.test(url);
 }
@@ -57,9 +49,9 @@ export default function ThumbnailPicker({ value, videoUrl, accent, onChange }: T
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* Resolve the video URL to something loadable by <video> */
-  const resolvedVideoUrl = isDriveUrl(videoUrl) ? getDriveStreamUrl(videoUrl) : videoUrl;
   const isYT = isYouTubeUrl(videoUrl);
+  // Drive files have downloads disabled, so they can't be loaded into a <video> for capture.
+  const isDrive = isDriveUrl(videoUrl);
 
   /* ── Frame capture logic ── */
   const handleVideoLoaded = useCallback(() => {
@@ -269,6 +261,21 @@ export default function ThumbnailPicker({ value, videoUrl, accent, onChange }: T
                   </button>
                 </div>
               </div>
+            ) : isDrive ? (
+              <div className="thumb-picker-yt-notice">
+                <div>
+                  <strong>Google Drive videos</strong> can't be frame-captured (downloads are disabled).
+                  Upload an image, or try Drive's own thumbnail:
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-sm admin-btn-secondary"
+                    style={{ marginTop: 8, display: 'block' }}
+                    onClick={() => onChange(getDriveThumbnailUrl(videoUrl))}
+                  >
+                    Use Drive Thumbnail
+                  </button>
+                </div>
+              </div>
             ) : !videoUrl ? (
               <div className="thumb-picker-empty">
                 Enter a video URL first, then you can capture a frame.
@@ -278,7 +285,7 @@ export default function ThumbnailPicker({ value, videoUrl, accent, onChange }: T
                 <div className="thumb-picker-video-container">
                   <video
                     ref={videoRef}
-                    src={resolvedVideoUrl}
+                    src={videoUrl}
                     crossOrigin="anonymous"
                     preload="auto"
                     muted

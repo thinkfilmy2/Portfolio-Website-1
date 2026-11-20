@@ -34,6 +34,7 @@ interface Props {
   client: string;
   industry: string;
   type: string;
+  orientation?: 'portrait' | 'landscape';
   onShowGallery?: () => void;
 }
 
@@ -59,9 +60,9 @@ function loadYTApi(cb: () => void) {
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 export default function VideoPlayerModal(props: Props) {
-  const { isOpen, onClose, video, title, category, accent, summary, client, industry, type, onShowGallery } = props;
+  const { isOpen, onClose, video, title, category, accent, summary, client, industry, type, orientation, onShowGallery } = props;
   const ytId = getYouTubeId(video);
-  const isLocal = !ytId && !isDriveUrl(video);
+  const isLocal = !!video && !ytId && !isDriveUrl(video);
 
   /* ── YT state ── */
   const playerRef = useRef<any>(null);
@@ -317,7 +318,10 @@ export default function VideoPlayerModal(props: Props) {
   }, [isOpen, onClose]);
 
   /* ── Modal width: narrow for portrait, normal for landscape ── */
-  const modalMaxWidth = isPortrait ? '420px' : '820px';
+  // Drive's /preview iframe can't tell us the video size, so portrait comes from the project data.
+  const drivePortrait = !ytId && isDriveUrl(video) && orientation === 'portrait';
+  // 9:16 player capped so the whole video fits under the header within 92vh
+  const modalMaxWidth = drivePortrait ? 'min(420px, calc((92vh - 80px) * 9 / 16))' : isPortrait ? '420px' : '820px';
 
   return (
     <AnimatePresence>
@@ -354,6 +358,7 @@ export default function VideoPlayerModal(props: Props) {
             style={{
               maxWidth: modalMaxWidth,
               maxHeight: '92vh',
+              colorScheme: 'dark', // dark scrollbar when a tall portrait player makes the card scroll
               borderRadius: '20px',
               background: 'rgba(12,12,15,0.97)',
               backdropFilter: 'blur(60px)',
@@ -395,9 +400,19 @@ export default function VideoPlayerModal(props: Props) {
 
               {/* ── Google Drive ── */}
               {!ytId && isDriveUrl(video) && (
-                <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                <div className="relative w-full" style={{ aspectRatio: drivePortrait ? '9/16' : '16/9' }}>
                   <iframe src={getDriveEmbedUrl(video)} className="absolute inset-0 w-full h-full"
                     style={{ border: 'none' }} allow="autoplay; encrypted-media" allowFullScreen title={title} />
+                  {/* Drive draws a "Pop out" button (40px, 12px from top, 16px from right) inside its
+                      cross-origin iframe; it can't be removed, so this layer blocks clicks on it. */}
+                  <div aria-hidden="true" className="absolute top-0 right-0" style={{ width: 64, height: 60 }} />
+                </div>
+              )}
+
+              {/* ── No video link yet: say so instead of an endless spinner ── */}
+              {!video && (
+                <div className="relative w-full flex items-center justify-center text-sm" style={{ aspectRatio: '16/9', color: '#86868b' }}>
+                  Video coming soon
                 </div>
               )}
 
